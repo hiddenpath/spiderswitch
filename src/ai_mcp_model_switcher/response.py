@@ -26,7 +26,7 @@ class MCPResponse:
 
     status: str
     data: dict[str, Any] | None = None
-    error: dict[str, Any] | None = None
+    error_info: dict[str, Any] | None = None
     message: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -41,8 +41,8 @@ class MCPResponse:
         if self.data is not None:
             result["data"] = self.data
 
-        if self.error is not None:
-            result["error"] = self.error
+        if self.error_info is not None:
+            result["error"] = self.error_info
 
         if self.message is not None:
             result["message"] = self.message
@@ -63,7 +63,7 @@ class MCPResponse:
         cls,
         data: dict[str, Any],
         message: str | None = None,
-    ) -> "MCPResponse":
+    ) -> MCPResponse:
         """Create a successful response.
         创建成功响应。
 
@@ -82,7 +82,7 @@ class MCPResponse:
         message: str,
         error_type: str = "RuntimeError",
         details: dict[str, Any] | None = None,
-    ) -> "MCPResponse":
+    ) -> MCPResponse:
         """Create an error response.
         创建错误响应。
 
@@ -94,11 +94,11 @@ class MCPResponse:
         Returns:
             MCPResponse with error status
         """
-        error_info = {"type": error_type, "message": message}
+        error_info: dict[str, Any] = {"type": error_type, "message": message}
         if details:
             error_info["details"] = details
 
-        return cls(status="error", error=error_info, message=message)
+        return cls(status="error", error_info=error_info, message=message)
 
 
 def format_error_response(
@@ -117,7 +117,7 @@ def format_error_response(
     Returns:
         TextContent with formatted error
     """
-    error_dict = {
+    error_dict: dict[str, Any] = {
         "status": "error",
         "error": {
             "type": error_type,

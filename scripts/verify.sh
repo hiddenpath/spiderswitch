@@ -5,7 +5,7 @@
 set -e
 
 echo "========================================="
-echo "Verifying ai-mcp-model-switcher v0.1.0"
+echo "Verifying ai-mcp-model-switcher v0.2.0"
 echo "========================================="
 
 PROJECT_DIR="/home/alex/ai-mcp-model-switcher"
@@ -103,7 +103,7 @@ echo "Verification Complete!"
 echo "========================================="
 echo ""
 echo "Project: ai-mcp-model-switcher"
-echo "Version: 0.1.0"
+echo "Version: 0.2.0"
 echo "Location: $PROJECT_DIR"
 echo ""
 echo "Next steps:"

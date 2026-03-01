@@ -49,6 +49,30 @@ def test_state_manager_update() -> None:
     assert state.model == "gpt-4o"
     assert state.capabilities == ["streaming", "tools"]
     assert state.is_configured is True
+    assert state.connection_epoch == 1
+    assert state.last_switched_at is not None
+
+
+def test_state_manager_epoch_increments() -> None:
+    """Test connection_epoch increments on every switch."""
+    manager = ModelStateManager()
+
+    first = ModelInfo(
+        id="openai/gpt-4o",
+        provider="openai",
+        capabilities=ModelCapabilities(streaming=True),
+    )
+    second = ModelInfo(
+        id="anthropic/claude-3-5-sonnet",
+        provider="anthropic",
+        capabilities=ModelCapabilities(streaming=True, tools=True),
+    )
+
+    state1 = manager.update_from_model_info(first)
+    state2 = manager.update_from_model_info(second)
+
+    assert state1.connection_epoch == 1
+    assert state2.connection_epoch == 2
 
 
 def test_state_manager_get() -> None:

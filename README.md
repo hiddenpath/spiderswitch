@@ -36,6 +36,21 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 export GOOGLE_API_KEY="..."
 ```
 
+Recommended provider key mapping:
+
+| Provider | Environment Variable |
+|----------|----------------------|
+| openai | `OPENAI_API_KEY` |
+| anthropic | `ANTHROPIC_API_KEY` |
+| google | `GOOGLE_API_KEY` or `GEMINI_API_KEY` |
+| deepseek | `DEEPSEEK_API_KEY` |
+| cohere | `COHERE_API_KEY` |
+| mistral | `MISTRAL_API_KEY` |
+
+Security note:
+- Prefer environment variables over passing `api_key` in tool arguments.
+- The server redacts sensitive fields in logs, but passing secrets in arguments still increases exposure risk in client traces.
+
 ### Configuration
 
 Add to your MCP client configuration (e.g., Cursor, Claude Desktop):
@@ -80,7 +95,7 @@ Switches to a different AI model/provider.
 
 **Parameters:**
 - `model` (string, required): Model identifier (e.g., `openai/gpt-4o`, `anthropic/claude-3-5-sonnet`)
-- `api_key` (string, optional): Explicit API key (overrides environment variable)
+- `api_key` (string, optional): Explicit API key (overrides environment variable; not recommended for production)
 - `base_url` (string, optional): Custom base URL for testing/mock
 
 **Returns:**
@@ -129,9 +144,33 @@ Gets current model status and configuration.
   "provider": "anthropic",
   "model": "claude-3-5-sonnet",
   "capabilities": ["streaming", "tools", "vision"],
-  "is_configured": true
+  "is_configured": true,
+  "connection_epoch": 3,
+  "last_switched_at": "2026-03-02T09:00:00+00:00"
 }
 ```
+
+## API Key Guidance and Troubleshooting
+
+When `switch_model` fails due to missing credentials, the response includes:
+- `provider`: which provider is missing credentials
+- `expected_env_vars`: accepted environment variable names
+- `hint`: actionable setup instruction
+
+Typical setup flow:
+1. Configure provider key in your MCP server process environment.
+2. Restart the MCP server process if your client does not support hot env reload.
+3. Call `switch_model`.
+4. Verify with `get_status`.
+
+## Connection Coordination with Agent Runtime
+
+This MCP server manages model client lifecycle internally. To avoid conflicts with an agent's own connection manager:
+- Treat MCP switcher as the control plane for model selection.
+- Let the agent side observe `get_status.connection_epoch`.
+- Rebuild agent-side cached sessions only when `connection_epoch` increases.
+
+This pattern prevents stale session reuse after model switches and supports deterministic synchronization.
 
 ## Architecture
 
@@ -158,7 +197,7 @@ ai-mcp-model-switcher/
 
 ```bash
 # Install test dependencies
-pip install -e ".[test]"
+pip install -e ".[dev]"
 
 # Run tests
 pytest

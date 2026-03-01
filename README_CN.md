@@ -36,6 +36,21 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 export GOOGLE_API_KEY="..."
 ```
 
+推荐 provider 与环境变量映射：
+
+| Provider | 环境变量 |
+|----------|----------|
+| openai | `OPENAI_API_KEY` |
+| anthropic | `ANTHROPIC_API_KEY` |
+| google | `GOOGLE_API_KEY` 或 `GEMINI_API_KEY` |
+| deepseek | `DEEPSEEK_API_KEY` |
+| cohere | `COHERE_API_KEY` |
+| mistral | `MISTRAL_API_KEY` |
+
+安全建议：
+- 生产环境优先使用环境变量，不要在工具参数中显式传 `api_key`。
+- 服务端日志会做敏感字段脱敏，但客户端调用轨迹中仍可能暴露明文参数。
+
 ### 配置
 
 添加到你的MCP客户端配置（如Cursor、Claude Desktop）：
@@ -80,7 +95,7 @@ status = await mcp_client.call_tool("get_status", {})
 
 **参数：**
 - `model`（字符串，必填）：模型标识符（如 `openai/gpt-4o`、`anthropic/claude-3-5-sonnet`）
-- `api_key`（字符串，可选）：显式API密钥（覆盖环境变量）
+- `api_key`（字符串，可选）：显式API密钥（覆盖环境变量；生产环境不推荐）
 - `base_url`（字符串，可选）：用于测试/mock的自定义基础URL
 
 **返回：**
@@ -129,9 +144,33 @@ status = await mcp_client.call_tool("get_status", {})
   "provider": "anthropic",
   "model": "claude-3-5-sonnet",
   "capabilities": ["streaming", "tools", "vision"],
-  "is_configured": true
+  "is_configured": true,
+  "connection_epoch": 3,
+  "last_switched_at": "2026-03-02T09:00:00+00:00"
 }
 ```
+
+## API Key 指南与排障
+
+当 `switch_model` 因密钥缺失失败时，返回里会包含：
+- `provider`：缺失密钥的 provider
+- `expected_env_vars`：支持的环境变量名称
+- `hint`：可直接执行的修复提示
+
+建议排障流程：
+1. 在 MCP 服务器进程环境中配置对应 API key。
+2. 如客户端不支持热更新环境变量，重启 MCP 服务进程。
+3. 重新调用 `switch_model`。
+4. 调用 `get_status` 确认状态。
+
+## 与 Agent 连接管理的协调方式
+
+本服务在内部管理模型客户端生命周期。为了避免与 agent 自身连接管理冲突，建议：
+- 把 MCP switcher 作为模型切换控制平面；
+- agent 侧监听 `get_status.connection_epoch`；
+- 仅当 `connection_epoch` 增加时，重建 agent 侧缓存会话。
+
+这样可以避免模型切换后继续复用旧连接，降低状态漂移风险。
 
 ## 架构
 
@@ -158,7 +197,7 @@ ai-mcp-model-switcher/
 
 ```bash
 # 安装测试依赖
-pip install -e ".[test]"
+pip install -e ".[dev]"
 
 # 运行测试
 pytest

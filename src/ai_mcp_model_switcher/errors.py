@@ -28,7 +28,7 @@ class ModelSwitcherError(Exception):
 
     def to_dict(self) -> dict[str, object]:
         """Convert exception to dictionary for MCP response."""
-        result = {
+        result: dict[str, object] = {
             "error_type": self.__class__.__name__,
             "message": self.message,
         }

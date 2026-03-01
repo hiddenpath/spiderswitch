@@ -11,21 +11,23 @@ from __future__ import annotations
 
 import logging
 
+from mcp.types import TextContent, Tool
+
 from ..errors import InvalidModelError, ModelSwitcherError
 from ..response import MCPResponse
-from mcp.types import TextContent, Tool
+from ..runtime.base import Runtime
 from ..runtime.python_runtime import (
     extract_model_from_args,
     format_model_info,
 )
-
+from ..state import ModelStateManager
 
 logger = logging.getLogger(__name__)
 
 
 def tool_schema() -> Tool:
     """Get the switch_model tool schema.
-    
+
     Returns:
         Tool schema definition
     """
@@ -68,8 +70,8 @@ def tool_schema() -> Tool:
 
 
 async def handle(
-    runtime: object,
-    state_manager: object,
+    runtime: Runtime,
+    state_manager: ModelStateManager,
     arguments: dict[str, object],
 ) -> list[TextContent]:
     """Handle switch_model tool call.
@@ -112,7 +114,7 @@ async def handle(
         response = MCPResponse.error(
             message=str(e),
             error_type="InvalidModelError",
-            details=e.details if hasattr(e, 'details') else None,
+            details=e.details if hasattr(e, "details") else None,
         )
         return [response.to_text_content()]
 
@@ -122,7 +124,7 @@ async def handle(
         response = MCPResponse.error(
             message=str(e),
             error_type=e.__class__.__name__,
-            details=e.details if hasattr(e, 'details') else None,
+            details=e.details if hasattr(e, "details") else None,
         )
         return [response.to_text_content()]
 

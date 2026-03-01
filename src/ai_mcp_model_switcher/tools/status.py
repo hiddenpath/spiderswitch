@@ -11,26 +11,24 @@ from __future__ import annotations
 
 import logging
 
-from ..errors import ModelSwitcherError
-from ..response import MCPResponse
 from mcp.types import TextContent, Tool
 
+from ..errors import ModelSwitcherError
+from ..response import MCPResponse
+from ..state import ModelStateManager
 
 logger = logging.getLogger(__name__)
 
 
 def tool_schema() -> Tool:
     """Get the get_status tool schema.
-    
+
     Returns:
         Tool schema definition
     """
     return Tool(
         name="get_status",
-        description=(
-            "Get current model status and configuration. "
-            "获取当前模型状态和配置。"
-        ),
+        description=("Get current model status and configuration. 获取当前模型状态和配置。"),
         inputSchema={
             "type": "object",
             "properties": {},
@@ -38,7 +36,7 @@ def tool_schema() -> Tool:
     )
 
 
-async def handle(state_manager: object) -> list[TextContent]:
+async def handle(state_manager: ModelStateManager) -> list[TextContent]:
     """Handle get_status tool call.
 
     Args:
@@ -60,7 +58,7 @@ async def handle(state_manager: object) -> list[TextContent]:
         response = MCPResponse.error(
             message=str(e),
             error_type=e.__class__.__name__,
-            details=e.details if hasattr(e, 'details') else None,
+            details=e.details if hasattr(e, "details") else None,
         )
         return [response.to_text_content()]
 

@@ -15,13 +15,14 @@ import sys
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool
+from mcp.types import TextContent, Tool
 
+from .response import MCPResponse
 from .runtime import PythonRuntime
 from .runtime.base import Runtime
 from .state import ModelStateManager
-from .tools import list, status, switch
-
+from .tools import list as list_tool
+from .tools import status, switch
 
 # Configure logging
 logging.basicConfig(
@@ -32,77 +33,99 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def _redact_sensitive_arguments(arguments: dict[str, object]) -> dict[str, object]:
+    """Redact potentially sensitive tool arguments for logging.
+
+    屏蔽日志中的敏感参数，避免 API key 等泄露。
+    """
+    redacted: dict[str, object] = {}
+    sensitive_markers = ("key", "token", "secret", "password", "authorization")
+    for key, value in arguments.items():
+        lowered = key.lower()
+        if any(marker in lowered for marker in sensitive_markers):
+            redacted[key] = "***REDACTED***"
+        else:
+            redacted[key] = value
+    return redacted
+
+
 def create_app(
     runtime: Runtime | None = None,
     state_manager: ModelStateManager | None = None,
 ) -> Server:
     """Create MCP server with optional dependencies.
-    
+
     This factory function allows for dependency injection, making the server
     more testable and enabling multiple instances with different runtimes.
-    
+
     Args:
         runtime: Optional runtime instance. If None, uses PythonRuntime
         state_manager: Optional state manager instance. If None, creates new one
-    
+
     Returns:
         Configured MCP Server instance
     """
     _runtime = runtime or PythonRuntime()
     _state = state_manager or ModelStateManager()
-    
+
     app = Server("ai-mcp-model-switcher")
-    
-    @app.list_tools()
+
+    @app.list_tools()  # type: ignore[no-untyped-call,untyped-decorator]
     async def list_tools() -> list[Tool]:
         """Expose available MCP tools.
-        
+
         Returns:
             List of Tool objects
         """
         return [
             switch.tool_schema(),
-            list.tool_schema(),
+            list_tool.tool_schema(),
             status.tool_schema(),
         ]
-    
-    @app.call_tool()
-    async def call_tool(name: str, arguments: dict[str, object]) -> list:
+
+    @app.call_tool()  # type: ignore[untyped-decorator]
+    async def call_tool(
+        name: str,
+        arguments: dict[str, object] | None,
+    ) -> list[TextContent]:
         """Handle tool calls with structured error logging.
-        
+
         Args:
             name: Tool name
             arguments: Tool arguments
-        
+
         Returns:
             List of response content or error content
         """
+        args = arguments or {}
         try:
             if name == "switch_model":
-                return await switch.handle(_runtime, _state, arguments)
+                return await switch.handle(_runtime, _state, args)
             elif name == "list_models":
-                return await list.handle(_runtime, arguments)
+                return await list_tool.handle(_runtime, args)
             elif name == "get_status":
                 return await status.handle(_state)
             else:
                 logger.warning(f"Unknown tool requested: {name}")
-                return switch.format_model_info(_runtime)._format_error_response(
+                response = MCPResponse.error(
                     message=f"Unknown tool: {name}",
                     error_type="UnknownToolError",
                 )
+                return [response.to_text_content()]
         except Exception as e:
             logger.exception(
                 f"Error handling tool call '{name}': {e}",
                 extra={
                     "tool": name,
-                    "arguments": arguments,
+                    "arguments": _redact_sensitive_arguments(args),
                 }
             )
-            return switch.format_model_info(_runtime)._format_error_response(
+            response = MCPResponse.error(
                 message=f"Internal error: {e}",
                 error_type="InternalServerError",
             )
-    
+            return [response.to_text_content()]
+
     return app
 
 
@@ -111,21 +134,19 @@ async def main(
     state_manager: ModelStateManager | None = None,
 ) -> None:
     """Main entry point for the MCP server.
-    
+
     Runs the stdio server and handles cleanup on shutdown.
-    
+
     Args:
         runtime: Optional runtime instance for dependency injection
         state_manager: Optional state manager for dependency injection
     """
     logger.info("Starting ai-mcp-model-switcher MCP server")
-    
-    # Create app with dependencies
-    app = create_app(runtime, state_manager)
-    
-    # Store runtime reference for cleanup
-    _runtime = runtime or app._get_runtime()  # type: ignore
-    
+
+    _runtime = runtime or PythonRuntime()
+    _state = state_manager or ModelStateManager()
+    app = create_app(_runtime, _state)
+
     try:
         # Run stdio server
         async with stdio_server() as (read_stream, write_stream):
@@ -143,7 +164,7 @@ async def main(
         # Cleanup
         logger.info("Cleaning up resources...")
         try:
-            await _runtime.close()  # type: ignore
+            await _runtime.close()
         except Exception as e:
             logger.error(f"Error during cleanup: {e}")
         logger.info("Server shutdown complete")

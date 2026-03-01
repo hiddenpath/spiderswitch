@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ai-mcp-model-switcher"
-version = "0.1.0"
+version = "0.2.0"
 description = "MCP server for dynamic AI model switching in ai-lib ecosystem"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -56,7 +56,7 @@ Documentation = "https://github.com/yourorg/ai-mcp-model-switcher#readme"
 Issues = "https://github.com/yourorg/ai-mcp-model-switcher/issues"
 
 [project.scripts]
-ai-mcp-server = "ai_mcp_model_switcher.server:main"
+ai-mcp-server = "ai_mcp_model_switcher:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ai_mcp_model_switcher"]

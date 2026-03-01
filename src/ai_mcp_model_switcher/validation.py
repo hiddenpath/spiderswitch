@@ -6,30 +6,27 @@ Input validation utilities for model parameters.
 
 from __future__ import annotations
 
+import os
 import re
 from typing import Any
 
-from .errors import InvalidModelError, ValidationError
-
+from .errors import ApiKeyMissingError, InvalidModelError, ValidationError
 
 # Model ID format: provider/model
 # 模型 ID 格式：provider/model
 MODEL_PATTERN = re.compile(r"^[a-z0-9-]+/[a-z0-9-.]+$")
 
-# These will be loaded from ai-protocol manifests
-# Currently including common providers for validation
-# These should be replaced with protocol-driven loading
-# 这些将从 ai-protocol manifests 中加载
-# 目前包含常见的 provider 用于验证
-# 应替换为协议驱动的加载方式
-DEFAULT_VALID_PROVIDERS = {
-    "openai",
-    "anthropic",
-    "google",
-    "deepseek",
-    "cohere",
-    "mistral",
-    "meta",
+# API key environment variable mapping by provider.
+# Provider-specific env var names are intentionally centralized for diagnostics only.
+# Provider 的密钥环境变量映射，仅用于错误提示与引导。
+PROVIDER_API_KEY_ENV: dict[str, tuple[str, ...]] = {
+    "openai": ("OPENAI_API_KEY",),
+    "anthropic": ("ANTHROPIC_API_KEY",),
+    "google": ("GOOGLE_API_KEY", "GEMINI_API_KEY"),
+    "deepseek": ("DEEPSEEK_API_KEY",),
+    "cohere": ("COHERE_API_KEY",),
+    "mistral": ("MISTRAL_API_KEY",),
+    "meta": ("META_API_KEY",),
 }
 
 
@@ -50,7 +47,7 @@ class Validator:
             strict: If True, raises exception on validation failure; if False,
                    returns False
         """
-        self.valid_providers = valid_providers or DEFAULT_VALID_PROVIDERS.copy()
+        self.valid_providers = valid_providers or set()
         self.strict = strict
 
     def validate_model_id(self, model_id: str) -> None:
@@ -81,14 +78,9 @@ class Validator:
                 f"Expected format: 'provider/model' (e.g., 'openai/gpt-4o')",
             )
 
-        # Validate provider
-        provider = self._extract_provider(model_id)
-        if provider not in self.valid_providers:
-            self._raise_error(
-                InvalidModelError,
-                f"Unknown provider: '{provider}'. "
-                f"Valid providers: {sorted(self.valid_providers)}",
-            )
+        # Do not hardcode provider list here.
+        # Provider existence must be determined from protocol-loaded model inventory.
+        # 不在此处硬编码 provider 列表；由协议加载结果判定 provider 是否存在。
 
     def validate_api_key(self, api_key: Any) -> None:
         """Validate API key.
@@ -159,8 +151,7 @@ class Validator:
         if not base_url.startswith(("http://", "https://")):
             self._raise_error(
                 ValidationError,
-                f"Invalid base URL format: '{base_url}'. "
-                f"Must start with http:// or https://",
+                f"Invalid base URL format: '{base_url}'. Must start with http:// or https://",
             )
 
     def validate_switch_arguments(
@@ -193,6 +184,44 @@ class Validator:
         self.validate_base_url(base_url)
 
         return (model, api_key, base_url)
+
+    def validate_api_key_configuration(
+        self,
+        model_id: str,
+        api_key: str | None,
+    ) -> None:
+        """Validate API key availability for a target model.
+
+        Args:
+            model_id: Target model ID
+            api_key: Optional explicit API key
+
+        Raises:
+            ApiKeyMissingError: If explicit and environment keys are both missing
+        """
+        if api_key:
+            return
+
+        provider = self._extract_provider(model_id)
+        expected_env = PROVIDER_API_KEY_ENV.get(provider, ())
+        if not expected_env:
+            # Unknown mapping: skip strict env validation and let runtime/provider decide.
+            return
+
+        if any(os.getenv(key) for key in expected_env):
+            return
+
+        raise ApiKeyMissingError(
+            f"Missing API key for provider '{provider}'.",
+            details={
+                "provider": provider,
+                "expected_env_vars": list(expected_env),
+                "hint": (
+                    "Set one of the expected environment variables in your MCP server "
+                    "process before calling switch_model."
+                ),
+            },
+        )
 
     def _extract_provider(self, model_id: str) -> str:
         """Extract provider ID from model ID.
@@ -247,7 +276,7 @@ def validate_or_raise(
 __all__ = [
     "Validator",
     "DEFAULT_VALIDATOR",
-    "DEFAULT_VALID_PROVIDERS",
     "MODEL_PATTERN",
+    "PROVIDER_API_KEY_ENV",
     "validate_or_raise",
 ]

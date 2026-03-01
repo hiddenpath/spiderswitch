@@ -5,8 +5,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from ai_mcp_model_switcher.tools import list, status, switch
 
 

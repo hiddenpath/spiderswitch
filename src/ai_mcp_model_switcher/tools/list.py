@@ -11,18 +11,19 @@ from __future__ import annotations
 
 import logging
 
+from mcp.types import TextContent, Tool
+
 from ..errors import ModelSwitcherError
 from ..response import MCPResponse
-from mcp.types import TextContent, Tool
+from ..runtime.base import Runtime
 from ..runtime.python_runtime import format_model_info
-
 
 logger = logging.getLogger(__name__)
 
 
 def tool_schema() -> Tool:
     """Get the list_models tool schema.
-    
+
     Returns:
         Tool schema definition
     """
@@ -45,10 +46,7 @@ def tool_schema() -> Tool:
                 "filter_capability": {
                     "type": "string",
                     "enum": ["streaming", "tools", "vision", "embeddings", "audio"],
-                    "description": (
-                        "Optional filter by capability. "
-                        "可选，按能力过滤"
-                    ),
+                    "description": ("Optional filter by capability. 可选，按能力过滤"),
                 },
             },
         },
@@ -56,7 +54,7 @@ def tool_schema() -> Tool:
 
 
 async def handle(
-    runtime: object,
+    runtime: Runtime,
     arguments: dict[str, object],
 ) -> list[TextContent]:
     """Handle list_models tool call.
@@ -69,8 +67,12 @@ async def handle(
         List of TextContent with model list
     """
     try:
-        filter_provider = arguments.get("filter_provider")
-        filter_capability = arguments.get("filter_capability")
+        filter_provider_raw = arguments.get("filter_provider")
+        filter_capability_raw = arguments.get("filter_capability")
+        filter_provider = filter_provider_raw if isinstance(filter_provider_raw, str) else None
+        filter_capability = (
+            filter_capability_raw if isinstance(filter_capability_raw, str) else None
+        )
 
         logger.info(
             f"Listing models: filter_provider={filter_provider}, "
@@ -98,7 +100,7 @@ async def handle(
         response = MCPResponse.error(
             message=str(e),
             error_type=e.__class__.__name__,
-            details=e.details if hasattr(e, 'details') else None,
+            details=e.details if hasattr(e, "details") else None,
         )
         return [response.to_text_content()]
 
