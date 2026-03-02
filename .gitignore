@@ -42,3 +42,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 .Python
+
+# Internal work documents (must stay private)
+PROJECT_SUMMARY.md
+PROJECT_DELIVERY_REPORT.md
+IMPROVEMENTS_REPORT.md
+*INTERNAL*.md
+*PRIVATE*.md
