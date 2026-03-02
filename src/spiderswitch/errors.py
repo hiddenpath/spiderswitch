@@ -1,4 +1,4 @@
-# ai-mcp-model-switcher custom exceptions
+# spiderswitch custom exceptions
 """
 Custom exceptions for better error handling in the model switcher.
 自定义异常类，用于改进模型切换器的错误处理。

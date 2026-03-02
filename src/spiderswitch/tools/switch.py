@@ -1,4 +1,4 @@
-# ai-mcp-model-switcher switch_model tool
+# spiderswitch switch_model tool
 """
 MCP tool for switching AI models.
 MCP工具：切换AI模型。

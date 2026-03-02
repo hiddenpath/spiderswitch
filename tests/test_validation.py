@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import pytest
 
-from ai_mcp_model_switcher.errors import ApiKeyMissingError
-from ai_mcp_model_switcher.validation import DEFAULT_VALIDATOR
+from spiderswitch.errors import ApiKeyMissingError
+from spiderswitch.validation import DEFAULT_VALIDATOR
 
 
 def test_validate_api_key_configuration_missing_env(monkeypatch: pytest.MonkeyPatch) -> None:

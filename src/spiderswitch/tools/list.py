@@ -1,4 +1,4 @@
-# ai-mcp-model-switcher list_models tool
+# spiderswitch list_models tool
 """
 MCP tool for listing available models.
 MCP工具：列出可用模型。

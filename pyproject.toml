@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "ai-mcp-model-switcher"
+name = "spiderswitch"
 version = "0.2.0"
 description = "MCP server for dynamic AI model switching in ai-lib ecosystem"
 readme = "README.md"
@@ -50,16 +50,16 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourorg/ai-mcp-model-switcher"
-Repository = "https://github.com/yourorg/ai-mcp-model-switcher"
-Documentation = "https://github.com/yourorg/ai-mcp-model-switcher#readme"
-Issues = "https://github.com/yourorg/ai-mcp-model-switcher/issues"
+Homepage = "https://github.com/yourorg/spiderswitch"
+Repository = "https://github.com/yourorg/spiderswitch"
+Documentation = "https://github.com/yourorg/spiderswitch#readme"
+Issues = "https://github.com/yourorg/spiderswitch/issues"
 
 [project.scripts]
-ai-mcp-server = "ai_mcp_model_switcher:main"
+spiderswitch = "spiderswitch:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ai_mcp_model_switcher"]
+packages = ["src/spiderswitch"]
 
 [tool.ruff]
 line-length = 100
@@ -105,7 +105,7 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 
 [tool.coverage.run]
-source = ["src/ai_mcp_model_switcher"]
+source = ["src/spiderswitch"]
 
 [tool.coverage.report]
 exclude_lines = [

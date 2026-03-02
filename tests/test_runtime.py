@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from ai_mcp_model_switcher.runtime.base import ModelCapabilities, ModelInfo
+from spiderswitch.runtime.base import ModelCapabilities, ModelInfo
 
 
 class TestModelCapabilities:

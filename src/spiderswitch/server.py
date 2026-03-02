@@ -1,4 +1,4 @@
-# ai-mcp-model-switcher MCP server
+# spiderswitch MCP server
 """
 MCP server entry point for model switching.
 MCP服务器主入口，提供模型切换功能。
@@ -68,7 +68,7 @@ def create_app(
     _runtime = runtime or PythonRuntime()
     _state = state_manager or ModelStateManager()
 
-    app = Server("ai-mcp-model-switcher")
+    app = Server("spiderswitch")
 
     @app.list_tools()  # type: ignore[no-untyped-call,untyped-decorator]
     async def list_tools() -> list[Tool]:
@@ -141,7 +141,7 @@ async def main(
         runtime: Optional runtime instance for dependency injection
         state_manager: Optional state manager for dependency injection
     """
-    logger.info("Starting ai-mcp-model-switcher MCP server")
+    logger.info("Starting spiderswitch MCP server")
 
     _runtime = runtime or PythonRuntime()
     _state = state_manager or ModelStateManager()

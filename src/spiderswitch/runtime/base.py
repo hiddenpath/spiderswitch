@@ -1,4 +1,4 @@
-# ai-mcp-model-switcher base runtime interface
+# spiderswitch base runtime interface
 """
 Base runtime abstraction for different ai-lib implementations.
 运行时抽象基类，定义统一的模型交互接口。

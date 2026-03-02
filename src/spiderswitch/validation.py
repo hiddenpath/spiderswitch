@@ -1,4 +1,4 @@
-# ai-mcp-model-switcher validation utilities
+# spiderswitch validation utilities
 """
 Input validation utilities for model parameters.
 模型参数输入验证工具类。

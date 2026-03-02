@@ -1,4 +1,4 @@
-# ai-lib生态系统的MCP模型切换器
+# spiderswitch（ai-lib生态系统MCP模型切换器）
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-green.svg)](LICENSE)
@@ -19,8 +19,8 @@ MCP（Model Context Protocol）服务器，使Agent能够从[ai-lib生态系统]
 
 ```bash
 # 克隆仓库
-git clone https://github.com/yourorg/ai-mcp-model-switcher.git
-cd ai-mcp-model-switcher
+git clone https://github.com/yourorg/spiderswitch.git
+cd spiderswitch
 
 # 安装依赖
 pip install -e .
@@ -58,9 +58,9 @@ export GOOGLE_API_KEY="..."
 ```json
 {
   "mcpServers": {
-    "ai-model-switcher": {
+    "spiderswitch": {
       "command": "python",
-      "args": ["-m", "ai_mcp_model_switcher.server"],
+      "args": ["-m", "spiderswitch.server"],
       "env": {
         "AI_PROTOCOL_PATH": "/path/to/ai-protocol"
       }
@@ -175,7 +175,7 @@ status = await mcp_client.call_tool("get_status", {})
 ## 架构
 
 ```
-ai-mcp-model-switcher/
+spiderswitch/
 ├── src/
 │   ├── server.py           # MCP服务器主入口
 │   ├── tools/              # MCP工具实现
@@ -203,7 +203,7 @@ pip install -e ".[dev]"
 pytest
 
 # 运行测试并生成覆盖率报告
-pytest --cov=src/ai_mcp_model_switcher
+pytest --cov=src/spiderswitch
 ```
 
 ### 使用Mock服务器测试
@@ -215,7 +215,7 @@ pytest --cov=src/ai_mcp_model_switcher
 docker-compose up -d ai-protocol-mock
 
 # 使用mock运行
-MOCK_HTTP_URL=http://localhost:4010 python -m ai_mcp_model_switcher.server
+MOCK_HTTP_URL=http://localhost:4010 python -m spiderswitch.server
 ```
 
 ### 代码风格
@@ -264,4 +264,4 @@ mypy src
 
 ---
 
-**ai-mcp-model-switcher** - Where MCP meets ai-lib. 🤖🔀
+**spiderswitch** - Where MCP meets ai-lib. 🤖🔀

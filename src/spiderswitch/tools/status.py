@@ -1,4 +1,4 @@
-# ai-mcp-model-switcher get_status tool
+# spiderswitch get_status tool
 """
 MCP tool for getting current model status.
 MCP工具：获取当前模型状态。

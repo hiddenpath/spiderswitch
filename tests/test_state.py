@@ -5,8 +5,8 @@
 
 from __future__ import annotations
 
-from ai_mcp_model_switcher.runtime.base import ModelCapabilities, ModelInfo
-from ai_mcp_model_switcher.state import ModelState, ModelStateManager
+from spiderswitch.runtime.base import ModelCapabilities, ModelInfo
+from spiderswitch.state import ModelState, ModelStateManager
 
 
 def test_model_state_default() -> None:

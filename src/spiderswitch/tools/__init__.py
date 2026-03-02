@@ -1,4 +1,4 @@
-# ai-mcp-model-switcher tools module
+# spiderswitch tools module
 """
 MCP tools for model switching and querying.
 MCP工具：模型切换和查询。

@@ -9,12 +9,12 @@ import ast
 
 import pytest
 
-from ai_mcp_model_switcher.runtime.base import ModelCapabilities, ModelInfo
-from ai_mcp_model_switcher.server import _redact_sensitive_arguments
-from ai_mcp_model_switcher.state import ModelStateManager
-from ai_mcp_model_switcher.tools import list as list_tool
-from ai_mcp_model_switcher.tools import status as status_tool
-from ai_mcp_model_switcher.tools import switch as switch_tool
+from spiderswitch.runtime.base import ModelCapabilities, ModelInfo
+from spiderswitch.server import _redact_sensitive_arguments
+from spiderswitch.state import ModelStateManager
+from spiderswitch.tools import list as list_tool
+from spiderswitch.tools import status as status_tool
+from spiderswitch.tools import switch as switch_tool
 
 
 class _DummyRuntime:

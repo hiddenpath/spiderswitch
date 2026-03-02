@@ -1,4 +1,4 @@
-# MCP Model Switcher for ai-lib Ecosystem
+# spiderswitch for ai-lib Ecosystem
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-green.svg)](LICENSE)
@@ -19,8 +19,8 @@ MCP (Model Context Protocol) server that enables agents to dynamically switch AI
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourorg/ai-mcp-model-switcher.git
-cd ai-mcp-model-switcher
+git clone https://github.com/yourorg/spiderswitch.git
+cd spiderswitch
 
 # Install dependencies
 pip install -e .
@@ -58,9 +58,9 @@ Add to your MCP client configuration (e.g., Cursor, Claude Desktop):
 ```json
 {
   "mcpServers": {
-    "ai-model-switcher": {
+    "spiderswitch": {
       "command": "python",
-      "args": ["-m", "ai_mcp_model_switcher.server"],
+      "args": ["-m", "spiderswitch.server"],
       "env": {
         "AI_PROTOCOL_PATH": "/path/to/ai-protocol"
       }
@@ -175,7 +175,7 @@ This pattern prevents stale session reuse after model switches and supports dete
 ## Architecture
 
 ```
-ai-mcp-model-switcher/
+spiderswitch/
 ├── src/
 │   ├── server.py           # MCP server main entry point
 │   ├── tools/              # MCP tool implementations
@@ -203,7 +203,7 @@ pip install -e ".[dev]"
 pytest
 
 # Run with coverage
-pytest --cov=src/ai_mcp_model_switcher
+pytest --cov=src/spiderswitch
 ```
 
 ### Testing with Mock Server
@@ -215,7 +215,7 @@ Use [ai-protocol-mock](https://github.com/hiddenpath/ai-protocol-mock):
 docker-compose up -d ai-protocol-mock
 
 # Run with mock
-MOCK_HTTP_URL=http://localhost:4010 python -m ai_mcp_model_switcher.server
+MOCK_HTTP_URL=http://localhost:4010 python -m spiderswitch.server
 ```
 
 ### Code Style
@@ -264,4 +264,4 @@ Contributions are welcome! Please ensure:
 
 ---
 
-**ai-mcp-model-switcher** - Where MCP meets ai-lib. 🤖🔀
+**spiderswitch** - Where MCP meets ai-lib. 🤖🔀

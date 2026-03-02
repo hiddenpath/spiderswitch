@@ -10,8 +10,8 @@ from dataclasses import dataclass
 
 import pytest
 
-from ai_mcp_model_switcher.runtime.base import ModelCapabilities, ModelInfo
-from ai_mcp_model_switcher.runtime.python_runtime import PythonRuntime
+from spiderswitch.runtime.base import ModelCapabilities, ModelInfo
+from spiderswitch.runtime.python_runtime import PythonRuntime
 
 
 @dataclass
@@ -54,7 +54,7 @@ async def test_switch_model_is_serialized_under_concurrency(
         return _DummyClient()
 
     monkeypatch.setattr(
-        "ai_mcp_model_switcher.runtime.python_runtime.AiClient.create",
+        "spiderswitch.runtime.python_runtime.AiClient.create",
         fake_create,
     )
 

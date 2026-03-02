@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from ai_mcp_model_switcher.tools import list, status, switch
+from spiderswitch.tools import list, status, switch
 
 
 class TestSwitchTool:

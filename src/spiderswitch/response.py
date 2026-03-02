@@ -1,4 +1,4 @@
-# ai-mcp-model-switcher response utilities
+# spiderswitch response utilities
 """
 Unified MCP response format and utilities.
 统一的 MCP 响应格式和工具类。

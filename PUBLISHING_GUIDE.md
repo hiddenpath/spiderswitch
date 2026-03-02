@@ -1,8 +1,8 @@
-# ai-mcp-model-switcher 产品发布指南
+# spiderswitch 产品发布指南
 
 ## 概述
 
-本指南说明如何将 ai-mcp-model-switcher MCP 服务器作为产品发布，让用户可以在 Cursor、Claude Desktop、Antigravity 等 agent 中使用。
+本指南说明如何将 spiderswitch MCP 服务器作为产品发布，让用户可以在 Cursor、Claude Desktop、Antigravity 等 agent 中使用。
 
 ---
 
@@ -38,7 +38,7 @@
 
 ```toml
 [project]
-name = "ai-mcp-model-switcher"
+name = "spiderswitch"
 version = "0.1.0"
 description = "MCP server for dynamic AI model switching in ai-lib ecosystem"
 
@@ -119,10 +119,10 @@ python -m build
 twine check dist/*
 
 # 本地测试安装
-pip install dist/ai_mcp_model_switcher-0.1.0-py3-none-any.whl --force-reinstall
+pip install dist/spiderswitch-0.1.0-py3-none-any.whl --force-reinstall
 
 # 测试导入
-python -c "import ai_mcp_model_switcher; print(ai_mcp_model_switcher.__version__)"
+python -c "import spiderswitch; print(spiderswitch.__version__)"
 ```
 
 ### 3.4 发布到 TestPyPI（推荐）
@@ -132,7 +132,7 @@ python -c "import ai_mcp_model_switcher; print(ai_mcp_model_switcher.__version__
 twine upload --repository testpypi dist/*
 
 # 从 TestPyPI 测试安装
-pip install --index-url https://test.pypi.org/simple/ ai-mcp-model-switcher
+pip install --index-url https://test.pypi.org/simple/ spiderswitch
 ```
 
 ### 3.5 发布到 PyPI
@@ -150,17 +150,17 @@ twine upload dist/*
 
 ```bash
 # 从 PyPI 安装
-pip install ai-mcp-model-switcher
+pip install spiderswitch
 
 # 或使用 pipx（推荐，避免依赖冲突）
-pipx install ai-mcp-model-switcher
+pipx install spiderswitch
 ```
 
 ### 4.2 开发安装
 
 ```bash
-git clone https://github.com/yourorg/ai-mcp-model-switcher.git
-cd ai-mcp-model-switcher
+git clone https://github.com/yourorg/spiderswitch.git
+cd spiderswitch
 pip install -e .
 ```
 
@@ -183,15 +183,15 @@ COPY src/ ./src/
 # 设置环境变量
 ENV AI_PROTOCOL_PATH=/app/ai-protocol
 
-CMD ["python", "-m", "ai_mcp_model_switcher.server"]
+CMD ["python", "-m", "spiderswitch.server"]
 ```
 
 发布到 Docker Hub:
 
 ```bash
-docker build -t ai-mcp-model-switcher:0.1.0 .
-docker tag ai-mcp-model-switcher:0.1.0 ai-mcp-model-switcher:latest
-docker push ai-mcp-model-switcher:0.1.0
+docker build -t spiderswitch:0.1.0 .
+docker tag spiderswitch:0.1.0 spiderswitch:latest
+docker push spiderswitch:0.1.0
 ```
 
 ---
@@ -205,9 +205,9 @@ docker push ai-mcp-model-switcher:0.1.0
 ```json
 {
   "mcpServers": {
-    "ai-model-switcher": {
+    "spiderswitch": {
       "command": "python",
-      "args": ["-m", "ai_mcp_model_switcher.server"],
+      "args": ["-m", "spiderswitch.server"],
       "env": {
         "AI_PROTOCOL_PATH": "$HOME/ai-protocol",
         "OPENAI_API_KEY": "${OPENAI_API_KEY}",
@@ -230,9 +230,9 @@ docker push ai-mcp-model-switcher:0.1.0
 ```json
 {
   "mcpServers": {
-    "ai-model-switcher": {
+    "spiderswitch": {
       "command": "python",
-      "args": ["-m", "ai_mcp_model_switcher.server"],
+      "args": ["-m", "spiderswitch.server"],
       "env": {
         "AI_PROTOCOL_PATH": "$HOME/ai-protocol",
         "OPENAI_API_KEY": "${OPENAI_API_KEY}"
@@ -251,9 +251,9 @@ docker push ai-mcp-model-switcher:0.1.0
 ```json
 {
   "mcpServers": {
-    "ai-model-switcher": {
+    "spiderswitch": {
       "command": "python",
-      "args": ["-m", "ai_mcp_model_switcher.server"],
+      "args": ["-m", "spiderswitch.server"],
       "env": {
         "AI_PROTOCOL_PATH": "$HOME/ai-protocol"
       }
@@ -354,8 +354,8 @@ Claude Desktop 会自动识别 MCP 工具，用户可以请求：
 
 ```python
 import asyncio
-from ai_mcp_model_switcher.server import create_app
-from ai_mcp_model_switcher.runtime import PythonRuntime
+from spiderswitch.server import create_app
+from spiderswitch.runtime import PythonRuntime
 
 async def main():
     # 创建运行时
@@ -386,9 +386,9 @@ if __name__ == "__main__":
 ### 8.1 README.md 结构
 
 ```markdown
-# ai-mcp-model-switcher
+# spiderswitch
 
-[![PyPI version](https://img.shields.io/pypi/v/ai-mcp-model-switcher.svg)](https://pypi.org/project/ai-mcp-model-switcher/)
+[![PyPI version](https://img.shields.io/pypi/v/spiderswitch.svg)](https://pypi.org/project/spiderswitch/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-green.svg)](LICENSE)
 
@@ -399,7 +399,7 @@ MCP (Model Context Protocol) server that enables agents to dynamically switch AI
 ### Installation
 
 ```bash
-pip install ai-mcp-model-switcher
+pip install spiderswitch
 ```
 
 ### Configuration
@@ -587,7 +587,7 @@ locust -f locustfile.py
 
 引导用户：
 1. 查看 [Troubleshooting](docs/troubleshooting.md)
-2. 搜索 [Issues](https://github.com/yourorg/ai-mcp-model-switcher/issues)
+2. 搜索 [Issues](https://github.com/yourorg/spiderswitch/issues)
 3. 创建新 Issue（使用模板）
 
 ### 12.2 Issue 模板
@@ -621,7 +621,7 @@ If applicable, add screenshots to help explain your problem.
 **Environment**
  - OS: [e.g. macOS, Linux, Windows]
  - Python version: [e.g. 3.10, 3.11, 3.12]
- - ai-mcp-model-switcher version: [e.g. 0.1.0]
+ - spiderswitch version: [e.g. 0.1.0]
  - MCP client: [e.g. Cursor, Claude Desktop]
 
 **Additional context**
@@ -636,7 +636,7 @@ Add any other context about the problem here.
 
 - Twitter/X:
   ```text
-  🚀 Just released ai-mcp-model-switcher v0.1.0!
+  🚀 Just released spiderswitch v0.1.0!
   Dynamic AI model switching for Cursor & Claude Desktop.
   Switch between OpenAI, Anthropic, and more in seconds!
   #AI #MCP #ModelSwitching #OpenSource
@@ -644,7 +644,7 @@ Add any other context about the problem here.
 
 - Reddit (r/MachineLearning, r/artificial):
   ```text
-  [RELEASE] ai-mcp-model-switcher: Dynamic AI Model Switching MCP Server
+  [RELEASE] spiderswitch: Dynamic AI Model Switching MCP Server
   [ ... details ... ]
   ```
 
@@ -692,7 +692,7 @@ Add any other context about the problem here.
 
 ## 总结
 
-遵循此指南，你可以将 ai-mcp-model-switcher 成功发布为产品，让用户轻松地：
+遵循此指南，你可以将 spiderswitch 成功发布为产品，让用户轻松地：
 
 1. ✅ 通过 `pip install` 安装
 2. ✅ 在 Cursor 中配置使用

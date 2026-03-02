@@ -1,4 +1,4 @@
-# ai-mcp-model-switcher state management
+# spiderswitch state management
 """
 State management for the MCP model switcher.
 管理MCP模型切换器的状态。
