@@ -12,6 +12,10 @@ MCP (Model Context Protocol) server that enables agents to dynamically switch AI
 - **Runtime-Agnostic**: Uses ai-lib-python SDK for unified model interaction
 - **MCP-Compliant**: Implements standard MCP tools over stdio transport
 - **Capability Discovery**: Query available models and their capabilities
+- **Local Readiness Hints**: `list_models` includes API key presence and proxy readiness per provider
+- **Explicit Exit Path**: `exit_switcher` resets switcher runtime/state for clean fallback
+- **Auto Protocol Setup**: Auto-detects local `ai-protocol` path and sets `AI_PROTOCOL_PATH` for current process
+- **Official Dist Sync**: Best-effort sync of official `dist/v1/*.json` snapshot into local `ai-protocol/dist/v1`
 
 ## Quick Start
 
@@ -50,6 +54,11 @@ Recommended provider key mapping:
 Security note:
 - Prefer environment variables over passing `api_key` in tool arguments.
 - The server redacts sensitive fields in logs, but passing secrets in arguments still increases exposure risk in client traces.
+
+Optional runtime env controls:
+- `SPIDERSWITCH_SYNC_DIST=0` to disable startup sync of official `dist` json files.
+- `AI_PROTOCOL_DIST_BASE_URL` to override raw dist source (default official GitHub raw URL).
+- `AI_PROTOCOL_DIST_API_BASE_URL` to override GitHub API listing source for models/providers dist json.
 
 ### Configuration
 
@@ -123,7 +132,20 @@ Lists all available models from registered providers.
     {
       "id": "openai/gpt-4o",
       "provider": "openai",
-      "capabilities": ["streaming", "tools", "vision"]
+      "capabilities": ["streaming", "tools", "vision"],
+      "api_key_status": {
+        "provider": "openai",
+        "has_api_key": true,
+        "expected_env_vars": ["OPENAI_API_KEY"],
+        "configured_env_vars": ["OPENAI_API_KEY"]
+      },
+      "proxy_status": {
+        "provider": "openai",
+        "proxy_required_guess": true,
+        "proxy_configured": false,
+        "configured_proxy_env_vars": [],
+        "hint": "This provider may require proxy access in your network region. Set HTTPS_PROXY/HTTP_PROXY in the MCP server process environment if needed."
+      }
     },
     {
       "id": "anthropic/claude-3-5-sonnet",
@@ -147,6 +169,25 @@ Gets current model status and configuration.
   "is_configured": true,
   "connection_epoch": 3,
   "last_switched_at": "2026-03-02T09:00:00+00:00"
+}
+```
+
+### 4. exit_switcher
+
+Explicitly reset spiderswitch state and runtime client.
+
+**Returns:**
+```json
+{
+  "status": "success",
+  "data": {
+    "exited": true,
+    "status": {
+      "provider": null,
+      "model": null,
+      "is_configured": false
+    }
+  }
 }
 ```
 

@@ -17,6 +17,7 @@ from ..errors import ModelSwitcherError
 from ..response import MCPResponse
 from ..runtime.base import Runtime
 from ..runtime.python_runtime import format_model_info
+from ..validation import get_provider_api_key_status, get_provider_proxy_status
 
 logger = logging.getLogger(__name__)
 
@@ -86,10 +87,28 @@ async def handle(
         )
 
         # Format response with success status
+        provider_status_cache: dict[str, dict[str, object]] = {}
+        provider_proxy_cache: dict[str, dict[str, object]] = {}
+        model_entries: list[dict[str, object]] = []
+        for model in models:
+            provider = model.provider
+            if provider not in provider_status_cache:
+                provider_status_cache[provider] = get_provider_api_key_status(provider)
+            if provider not in provider_proxy_cache:
+                provider_proxy_cache[provider] = get_provider_proxy_status(provider)
+
+            model_entries.append(
+                {
+                    **format_model_info(model),
+                    "api_key_status": provider_status_cache[provider],
+                    "proxy_status": provider_proxy_cache[provider],
+                }
+            )
+
         response = MCPResponse.success(
             data={
                 "count": len(models),
-                "models": [format_model_info(m) for m in models],
+                "models": model_entries,
             },
         )
 

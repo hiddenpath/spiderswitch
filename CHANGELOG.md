@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 The format is based on Keep a Changelog and this project follows Semantic Versioning.
 
+## [0.3.0] - 2026-03-02
+
+### Added
+- Added provider readiness metadata in `list_models` output, including local API key presence and proxy status hints.
+- Added `exit_switcher` MCP tool for explicit switcher session exit/reset.
+- Added automatic local protocol setup (`AI_PROTOCOL_PATH`) and best-effort sync of official `ai-protocol/dist/v1` JSON snapshots.
+
+### Changed
+- Enhanced switch flow diagnostics with proxy pre-check warnings and actionable hints when connectivity fails.
+- Updated README/README_CN to document readiness checks, exit flow, and auto protocol/dist behavior.
+- Expanded regression and runtime tests to cover new readiness and exit capabilities.
+
 ## [0.2.0] - 2026-03-02
 
 ### Added

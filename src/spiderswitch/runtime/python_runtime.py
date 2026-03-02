@@ -10,9 +10,12 @@ Follows ARCH-001: All provider configurations loaded from ai-protocol manifests.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
 from pathlib import Path
+from urllib.error import URLError
+from urllib.request import Request, urlopen
 
 import yaml
 from ai_lib_python import AiClient
@@ -22,10 +25,17 @@ from ..errors import (
     ModelNotFoundError,
     ModelSwitcherError,
 )
-from ..validation import DEFAULT_VALIDATOR
+from ..validation import DEFAULT_VALIDATOR, get_provider_proxy_status
 from .base import ModelCapabilities, ModelInfo, Runtime
 
 logger = logging.getLogger(__name__)
+
+OFFICIAL_DIST_RAW_BASE_URL = (
+    "https://raw.githubusercontent.com/hiddenpath/ai-protocol/main/dist/v1"
+)
+OFFICIAL_DIST_API_BASE_URL = (
+    "https://api.github.com/repos/hiddenpath/ai-protocol/contents/dist/v1"
+)
 
 
 class PythonRuntime(Runtime):
@@ -84,6 +94,70 @@ class PythonRuntime(Runtime):
                 return candidate
 
         return None
+
+    def _sync_official_dist_json(self, base_path: Path) -> None:
+        """Best-effort sync for official ai-protocol dist json snapshot."""
+        sync_flag = os.getenv("SPIDERSWITCH_SYNC_DIST", "1").lower()
+        if sync_flag in {"0", "false", "no"}:
+            return
+
+        dist_base = base_path / "dist" / "v1"
+        dist_base.mkdir(parents=True, exist_ok=True)
+
+        raw_base = os.getenv("AI_PROTOCOL_DIST_BASE_URL", OFFICIAL_DIST_RAW_BASE_URL).rstrip("/")
+        api_base = os.getenv("AI_PROTOCOL_DIST_API_BASE_URL", OFFICIAL_DIST_API_BASE_URL).rstrip("/")
+
+        try:
+            self._download_file(
+                f"{raw_base}/spec.json",
+                dist_base / "spec.json",
+            )
+            self._download_dir_from_github_api(
+                f"{api_base}/models",
+                dist_base / "models",
+            )
+            self._download_dir_from_github_api(
+                f"{api_base}/providers",
+                dist_base / "providers",
+            )
+            logger.info("Synced official ai-protocol dist json snapshot.")
+        except Exception as e:
+            logger.warning("Failed to sync official dist json snapshot: %s", e)
+
+    @staticmethod
+    def _download_file(url: str, target: Path) -> None:
+        """Download a file to target path."""
+        target.parent.mkdir(parents=True, exist_ok=True)
+        req = Request(url, headers={"User-Agent": "spiderswitch/0.2.0"})
+        with urlopen(req, timeout=10) as resp:
+            content = resp.read()
+        target.write_bytes(content)
+
+    def _download_dir_from_github_api(self, api_url: str, target_dir: Path) -> None:
+        """Download all json files from a GitHub API directory listing."""
+        req = Request(api_url, headers={"User-Agent": "spiderswitch/0.2.0"})
+        with urlopen(req, timeout=10) as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+
+        if not isinstance(payload, list):
+            return
+
+        target_dir.mkdir(parents=True, exist_ok=True)
+        for item in payload:
+            if not isinstance(item, dict):
+                continue
+            if item.get("type") != "file":
+                continue
+            name = item.get("name")
+            download_url = item.get("download_url")
+            if not isinstance(name, str) or not isinstance(download_url, str):
+                continue
+            if not name.endswith(".json"):
+                continue
+            try:
+                self._download_file(download_url, target_dir / name)
+            except URLError as e:
+                logger.warning("Failed downloading %s: %s", name, e)
 
     @staticmethod
     def _capabilities_from_list(capabilities: list[str]) -> ModelCapabilities:
@@ -167,6 +241,11 @@ class PythonRuntime(Runtime):
                         ]
                     },
                 )
+
+            if not (os.getenv("AI_PROTOCOL_PATH") or os.getenv("AI_PROTOCOL_DIR")):
+                os.environ["AI_PROTOCOL_PATH"] = str(base_path)
+
+            self._sync_official_dist_json(base_path)
 
             self._available_models = self._load_models_from_protocol(base_path)
             self._is_initialized = True
@@ -264,9 +343,19 @@ class PythonRuntime(Runtime):
             )
 
         model_info = model_map[model_id]
+        provider = model_info.provider
 
         # Validate key source before creating a new client.
         DEFAULT_VALIDATOR.validate_api_key_configuration(model_id=model_id, api_key=api_key)
+        proxy_status = get_provider_proxy_status(provider)
+        if (
+            proxy_status.get("proxy_required_guess")
+            and not proxy_status.get("proxy_configured")
+        ):
+            logger.warning(
+                "Provider '%s' may require proxy, but no proxy env var is configured.",
+                provider,
+            )
 
         async with self._switch_lock:
             # Close existing client
@@ -289,9 +378,16 @@ class PythonRuntime(Runtime):
                 self._current_client = None
                 self._current_model_info = None
                 logger.error(f"Failed to create client for model '{model_id}': {e}")
+                details: dict[str, object] = {"error": str(e)}
+                if (
+                    proxy_status.get("proxy_required_guess")
+                    and not proxy_status.get("proxy_configured")
+                ):
+                    details["proxy_hint"] = proxy_status.get("hint")
+                    details["proxy_status"] = proxy_status
                 raise ModelSwitcherError(
                     f"Failed to create client for model '{model_id}'",
-                    details={"error": str(e)},
+                    details=details,
                 ) from e
 
         return model_info

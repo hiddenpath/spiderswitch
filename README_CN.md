@@ -12,6 +12,10 @@ MCP（Model Context Protocol）服务器，使Agent能够从[ai-lib生态系统]
 - **运行时无关**：使用ai-lib-python SDK进行统一的模型交互
 - **MCP兼容**：通过stdio传输实现标准MCP工具
 - **能力发现**：查询可用模型及其能力
+- **本地就绪提示**：`list_models` 返回每个 provider 的 API key 存在状态与代理就绪状态
+- **明确退出路径**：`exit_switcher` 可重置运行时与状态，便于回退
+- **自动协议路径**：自动探测本地 `ai-protocol` 并为当前进程设置 `AI_PROTOCOL_PATH`
+- **官方 Dist 同步**：启动时尽力同步官方 `dist/v1/*.json` 到本地 `ai-protocol/dist/v1`
 
 ## 快速开始
 
@@ -50,6 +54,11 @@ export GOOGLE_API_KEY="..."
 安全建议：
 - 生产环境优先使用环境变量，不要在工具参数中显式传 `api_key`。
 - 服务端日志会做敏感字段脱敏，但客户端调用轨迹中仍可能暴露明文参数。
+
+可选运行时环境变量：
+- `SPIDERSWITCH_SYNC_DIST=0`：关闭启动时官方 `dist` json 同步。
+- `AI_PROTOCOL_DIST_BASE_URL`：覆盖官方 raw dist 源地址。
+- `AI_PROTOCOL_DIST_API_BASE_URL`：覆盖 models/providers dist json 的 GitHub API 列表源地址。
 
 ### 配置
 
@@ -123,7 +132,20 @@ status = await mcp_client.call_tool("get_status", {})
     {
       "id": "openai/gpt-4o",
       "provider": "openai",
-      "capabilities": ["streaming", "tools", "vision"]
+      "capabilities": ["streaming", "tools", "vision"],
+      "api_key_status": {
+        "provider": "openai",
+        "has_api_key": true,
+        "expected_env_vars": ["OPENAI_API_KEY"],
+        "configured_env_vars": ["OPENAI_API_KEY"]
+      },
+      "proxy_status": {
+        "provider": "openai",
+        "proxy_required_guess": true,
+        "proxy_configured": false,
+        "configured_proxy_env_vars": [],
+        "hint": "This provider may require proxy access in your network region. Set HTTPS_PROXY/HTTP_PROXY in the MCP server process environment if needed."
+      }
     },
     {
       "id": "anthropic/claude-3-5-sonnet",
@@ -147,6 +169,25 @@ status = await mcp_client.call_tool("get_status", {})
   "is_configured": true,
   "connection_epoch": 3,
   "last_switched_at": "2026-03-02T09:00:00+00:00"
+}
+```
+
+### 4. exit_switcher
+
+显式重置 spiderswitch 运行时客户端与状态。
+
+**返回：**
+```json
+{
+  "status": "success",
+  "data": {
+    "exited": true,
+    "status": {
+      "provider": null,
+      "model": null,
+      "is_configured": false
+    }
+  }
 }
 ```
 

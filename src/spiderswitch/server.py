@@ -22,7 +22,7 @@ from .runtime import PythonRuntime
 from .runtime.base import Runtime
 from .state import ModelStateManager
 from .tools import list as list_tool
-from .tools import status, switch
+from .tools import reset, status, switch
 
 # Configure logging
 logging.basicConfig(
@@ -81,6 +81,7 @@ def create_app(
             switch.tool_schema(),
             list_tool.tool_schema(),
             status.tool_schema(),
+            reset.tool_schema(),
         ]
 
     @app.call_tool()  # type: ignore[untyped-decorator]
@@ -105,6 +106,8 @@ def create_app(
                 return await list_tool.handle(_runtime, args)
             elif name == "get_status":
                 return await status.handle(_state)
+            elif name == "exit_switcher":
+                return await reset.handle(_runtime, _state)
             else:
                 logger.warning(f"Unknown tool requested: {name}")
                 response = MCPResponse.error(

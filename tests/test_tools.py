@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from spiderswitch.tools import list, status, switch
+from spiderswitch.tools import list, reset, status, switch
 
 
 class TestSwitchTool:
@@ -39,5 +39,16 @@ class TestStatusTool:
         """Test tool schema has correct structure."""
         schema = status.tool_schema()
         assert schema.name == "get_status"
+        assert schema.inputSchema is not None
+        assert schema.inputSchema["properties"] == {}
+
+
+class TestResetTool:
+    """Tests for exit_switcher tool."""
+
+    def test_tool_schema_structure(self) -> None:
+        """Test tool schema has correct structure."""
+        schema = reset.tool_schema()
+        assert schema.name == "exit_switcher"
         assert schema.inputSchema is not None
         assert schema.inputSchema["properties"] == {}

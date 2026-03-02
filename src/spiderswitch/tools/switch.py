@@ -21,6 +21,7 @@ from ..runtime.python_runtime import (
     format_model_info,
 )
 from ..state import ModelStateManager
+from ..validation import get_provider_proxy_status
 
 logger = logging.getLogger(__name__)
 
@@ -98,10 +99,19 @@ async def handle(
         # Update state
         state_manager.update_from_model_info(model_info)
 
+        proxy_status = get_provider_proxy_status(model_info.provider)
+        warnings: list[str] = []
+        if proxy_status.get("proxy_required_guess") and not proxy_status.get("proxy_configured"):
+            hint = proxy_status.get("hint")
+            if isinstance(hint, str):
+                warnings.append(hint)
+
         # Format response with success status
         response = MCPResponse.success(
             data={
                 **format_model_info(model_info),
+                "proxy_status": proxy_status,
+                "warnings": warnings,
             },
             message=f"Successfully switched to {model_info.provider}/{model_info.id.split('/')[1] if '/' in model_info.id else model_info.id}",
         )

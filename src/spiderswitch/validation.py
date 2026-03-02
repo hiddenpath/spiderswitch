@@ -29,6 +29,19 @@ PROVIDER_API_KEY_ENV: dict[str, tuple[str, ...]] = {
     "meta": ("META_API_KEY",),
 }
 
+# Common proxy environment variables honored by Python networking stacks.
+PROXY_ENV_VARS: tuple[str, ...] = (
+    "HTTPS_PROXY",
+    "HTTP_PROXY",
+    "ALL_PROXY",
+    "https_proxy",
+    "http_proxy",
+    "all_proxy",
+)
+
+# Heuristic-only list for providers that often require proxy routing in some regions.
+PROVIDERS_MAY_REQUIRE_PROXY: set[str] = {"openai", "anthropic", "google", "cohere", "mistral"}
+
 
 class Validator:
     """Input validator for model parameters.
@@ -273,10 +286,46 @@ def validate_or_raise(
     return DEFAULT_VALIDATOR.validate_switch_arguments(*args, **kwargs)
 
 
+def get_provider_api_key_status(provider: str) -> dict[str, object]:
+    """Get local API key status for a provider without exposing values."""
+    expected_env_vars = list(PROVIDER_API_KEY_ENV.get(provider, ()))
+    configured_env_vars = [key for key in expected_env_vars if os.getenv(key)]
+    return {
+        "provider": provider,
+        "has_api_key": bool(configured_env_vars),
+        "expected_env_vars": expected_env_vars,
+        "configured_env_vars": configured_env_vars,
+    }
+
+
+def get_provider_proxy_status(provider: str) -> dict[str, object]:
+    """Get local proxy readiness status for a provider."""
+    configured_proxy_env_vars = [key for key in PROXY_ENV_VARS if os.getenv(key)]
+    proxy_required_guess = provider in PROVIDERS_MAY_REQUIRE_PROXY
+    proxy_configured = bool(configured_proxy_env_vars)
+    hint: str | None = None
+    if proxy_required_guess and not proxy_configured:
+        hint = (
+            "This provider may require proxy access in your network region. "
+            "Set HTTPS_PROXY/HTTP_PROXY in the MCP server process environment if needed."
+        )
+    return {
+        "provider": provider,
+        "proxy_required_guess": proxy_required_guess,
+        "proxy_configured": proxy_configured,
+        "configured_proxy_env_vars": configured_proxy_env_vars,
+        "hint": hint,
+    }
+
+
 __all__ = [
     "Validator",
     "DEFAULT_VALIDATOR",
     "MODEL_PATTERN",
     "PROVIDER_API_KEY_ENV",
+    "PROXY_ENV_VARS",
+    "PROVIDERS_MAY_REQUIRE_PROXY",
+    "get_provider_api_key_status",
+    "get_provider_proxy_status",
     "validate_or_raise",
 ]

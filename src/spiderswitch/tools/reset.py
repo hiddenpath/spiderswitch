@@ -1,0 +1,57 @@
+# spiderswitch exit/reset tool
+"""
+MCP tool for explicitly exiting spiderswitch model switching mode.
+MCP工具：显式退出 spiderswitch 模型切换模式。
+"""
+
+from __future__ import annotations
+
+import logging
+
+from mcp.types import TextContent, Tool
+
+from ..response import MCPResponse
+from ..runtime.base import Runtime
+from ..state import ModelStateManager
+
+logger = logging.getLogger(__name__)
+
+
+def tool_schema() -> Tool:
+    """Get the exit_switcher tool schema."""
+    return Tool(
+        name="exit_switcher",
+        description=(
+            "Reset spiderswitch runtime/session state and exit model switching mode. "
+            "重置 spiderswitch 运行时与会话状态，退出模型切换模式。"
+        ),
+        inputSchema={"type": "object", "properties": {}},
+    )
+
+
+async def handle(runtime: Runtime, state_manager: ModelStateManager) -> list[TextContent]:
+    """Handle exit_switcher tool call."""
+    try:
+        await runtime.close()
+        state_manager.reset()
+        response = MCPResponse.success(
+            data={
+                "exited": True,
+                "status": state_manager.get_state().to_dict(),
+            },
+            message=(
+                "spiderswitch state has been reset. "
+                "Cursor built-in model selection is unaffected."
+            ),
+        )
+        return [response.to_text_content()]
+    except Exception as e:
+        logger.exception("Failed to exit spiderswitch mode: %s", e)
+        response = MCPResponse.error(
+            message=f"Failed to exit switcher mode: {e}",
+            error_type="RuntimeError",
+        )
+        return [response.to_text_content()]
+
+
+__all__ = ["tool_schema", "handle"]
