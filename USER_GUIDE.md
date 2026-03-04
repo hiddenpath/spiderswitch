@@ -166,7 +166,7 @@ Different MCP clients have different configuration file locations. Choose based 
 | System | Configuration File Path |
 |--------|------------------------|
 | macOS | `~/.cursor/mcp.json` |
-| Windows | `%APPDATA%\Cursor\mcp.json` |
+| Windows | `%USERPROFILE%\\.cursor\\mcp.json` (recommended), fallback `%APPDATA%\\Cursor\\mcp.json` |
 | Linux | `~/.config/cursor/mcp.json` |
 
 **Configuration Steps**:
@@ -176,6 +176,7 @@ Different MCP clients have different configuration file locations. Choose based 
 4. Restart Cursor
 
 **Note**: Cursor also supports project-level configuration. You can create `.cursor/mcp.json` in your project root.
+If both user-level paths exist on Windows, use `%USERPROFILE%\\.cursor\\mcp.json` as the primary file.
 
 ---
 
