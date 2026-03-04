@@ -107,19 +107,11 @@ $env:OPENAI_API_KEY = "sk-你的密钥"
 
 ## 第三步：配置 MCP 客户端
 
-将 spiderswitch 添加到你使用的 MCP 客户端配置中。
+spiderswitch 是一个通用 MCP 服务器，可以与任何支持 MCP 协议的客户端配合使用。
 
-### Claude Desktop 配置
+### 通用配置模板
 
-找到配置文件位置：
-
-| 系统 | 配置文件路径 |
-|------|-------------|
-| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
-| Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
-| Linux | `~/.config/Claude/claude_desktop_config.json` |
-
-编辑配置文件，添加：
+所有 MCP 客户端的配置格式相同：
 
 ```json
 {
@@ -132,7 +124,7 @@ $env:OPENAI_API_KEY = "sk-你的密钥"
 }
 ```
 
-如果需要指定 ai-protocol 路径：
+如需指定 ai-protocol 路径：
 
 ```json
 {
@@ -148,13 +140,137 @@ $env:OPENAI_API_KEY = "sk-你的密钥"
 }
 ```
 
-### Cursor 配置
+---
 
+### 各客户端配置方法
+
+不同 MCP 客户端的配置文件位置不同，请根据你使用的工具选择：
+
+#### Claude Desktop
+
+| 系统 | 配置文件路径 |
+|------|-------------|
+| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Windows | `%APPDATA%\\Claude\\claude_desktop_config.json` |
+| Linux | `~/.config/Claude/claude_desktop_config.json` |
+
+**配置步骤**：
+1. 找到并编辑配置文件（如不存在则创建）
+2. 添加上述通用配置模板内容
+3. 保存文件，重启 Claude Desktop
+
+---
+
+#### Cursor
+
+| 系统 | 配置文件路径 |
+|------|-------------|
+| macOS | `~/.cursor/mcp.json` |
+| Windows | `%APPDATA%\\Cursor\\mcp.json` |
+| Linux | `~/.config/cursor/mcp.json` |
+
+**配置步骤**：
 1. 打开 Cursor 设置（`Ctrl/Cmd + ,`）
-2. 搜索 "MCP" 或找到 "Model Context Protocol" 设置
-3. 添加 spiderswitch 服务器配置（同上）
+2. 搜索 "MCP" 确认 MCP 功能已启用
+3. 编辑配置文件，添加通用配置模板内容
+4. 重启 Cursor
 
-配置完成后，**重启应用**使配置生效。
+**注意**：Cursor 也支持项目级配置，可在项目根目录创建 `.cursor/mcp.json`。
+
+---
+
+#### OpenCode / OpenCode-compatible Clients
+
+| 系统 | 配置文件路径 |
+|------|-------------|
+| macOS/Linux | `~/.config/opencode/mcp.json` |
+| Windows | `%APPDATA%\\opencode\\mcp.json` |
+
+**配置步骤**：
+1. 确认配置目录存在（如不存在则创建）
+2. 编辑或创建 `mcp.json` 文件
+3. 添加通用配置模板内容
+4. 重启客户端
+
+---
+
+#### Windsurf
+
+| 系统 | 配置文件路径 |
+|------|-------------|
+| macOS | `~/.windsurf/mcp.json` |
+| Windows | `%APPDATA%\\Windsurf\\mcp.json` |
+| Linux | `~/.config/windsurf/mcp.json` |
+
+**配置步骤**：
+1. 打开 Windsurf 设置
+2. 找到 MCP 配置部分
+3. 添加通用配置模板内容
+4. 保存并重启
+
+---
+
+#### Zed
+
+Zed 通过 `settings.json` 配置 MCP 服务器：
+
+| 系统 | 配置文件路径 |
+|------|-------------|
+| macOS/Linux | `~/.config/zed/settings.json` |
+| Windows | `%APPDATA%\\Zed\\settings.json` |
+
+**配置示例**：
+```json
+{
+  "mcp_servers": {
+    "spiderswitch": {
+      "command": "python",
+      "args": ["-m", "spiderswitch.server"]
+    }
+  }
+}
+```
+
+---
+
+#### 其他 MCP 客户端
+
+如果你使用的是其他支持 MCP 的客户端：
+
+1. 查阅该客户端的文档，找到 MCP 服务器配置位置
+2. 使用上述通用配置模板
+3. 注意配置文件的 JSON 结构可能略有不同（如 `mcp_servers` vs `mcpServers`）
+
+---
+
+### 配置验证
+
+配置完成后，可通过以下方式验证：
+
+1. 重启 MCP 客户端
+2. 在客户端中尝试调用 `list_models` 工具
+3. 如返回可用模型列表，说明配置成功
+
+### 常见问题
+
+**Q: 配置文件不存在怎么办？**
+
+手动创建目录和文件即可。例如：
+```bash
+# macOS/Linux (Claude Desktop)
+mkdir -p ~/.config/Claude
+touch ~/.config/Claude/claude_desktop_config.json
+
+# macOS/Linux (Cursor)
+mkdir -p ~/.cursor
+touch ~/.cursor/mcp.json
+```
+
+**Q: 环境变量不生效？**
+
+MCP 服务器继承客户端进程的环境变量。确保：
+1. 环境变量在启动客户端**之前**设置
+2. 或在配置文件的 `env` 字段中设置
 
 ---
 
