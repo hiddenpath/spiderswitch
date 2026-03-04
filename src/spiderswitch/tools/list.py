@@ -49,6 +49,14 @@ def tool_schema() -> Tool:
                     "enum": ["streaming", "tools", "vision", "embeddings", "audio"],
                     "description": ("Optional filter by capability. 可选，按能力过滤"),
                 },
+                "require_api_key": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": (
+                        "If true, only return models from providers with configured API keys. "
+                        "如果为 true，只返回已配置 API Key 的 provider 的模型"
+                    ),
+                },
             },
         },
     )
@@ -70,14 +78,19 @@ async def handle(
     try:
         filter_provider_raw = arguments.get("filter_provider")
         filter_capability_raw = arguments.get("filter_capability")
+        require_api_key_raw = arguments.get("require_api_key")
         filter_provider = filter_provider_raw if isinstance(filter_provider_raw, str) else None
         filter_capability = (
             filter_capability_raw if isinstance(filter_capability_raw, str) else None
         )
+        require_api_key = (
+            require_api_key_raw if isinstance(require_api_key_raw, bool) else False
+        )
 
         logger.info(
             f"Listing models: filter_provider={filter_provider}, "
-            f"filter_capability={filter_capability}"
+            f"filter_capability={filter_capability}, "
+            f"require_api_key={require_api_key}"
         )
 
         # Get models from runtime
@@ -97,6 +110,16 @@ async def handle(
             if provider not in provider_proxy_cache:
                 provider_proxy_cache[provider] = get_provider_proxy_status(provider)
 
+            # Filter out models from providers without API keys if required
+            if require_api_key:
+                api_key_status = provider_status_cache[provider]
+                if not api_key_status.get("has_api_key", False):
+                    logger.debug(
+                        f"Skipping model {model.id} from provider {provider}: "
+                        "no API key configured"
+                    )
+                    continue
+
             model_entries.append(
                 {
                     **format_model_info(model),
@@ -107,8 +130,13 @@ async def handle(
 
         response = MCPResponse.success(
             data={
-                "count": len(models),
+                "count": len(model_entries),
                 "models": model_entries,
+                "filtered": {
+                    "require_api_key": require_api_key,
+                    "provider": filter_provider,
+                    "capability": filter_capability,
+                },
             },
         )
 
