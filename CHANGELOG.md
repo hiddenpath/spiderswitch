@@ -6,6 +6,13 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+### Added
+- Added `runtime_profile` signal in `switch_model`, `list_models`, and `get_status` responses to expose runtime routing capabilities to upper-layer policy engines.
+- Added runtime-level profile API in runtime abstraction (`describe_runtime_profile`) and Python runtime implementation.
+
+### Changed
+- Clarified routing boundary in docs: spiderswitch provides routing capability signals only; strategy policy remains in upper-layer applications.
+
 ## [0.4.0] - 2026-03-06
 
 ### Added

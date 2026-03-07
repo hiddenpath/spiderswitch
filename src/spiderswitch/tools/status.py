@@ -15,6 +15,7 @@ from mcp.types import TextContent, Tool
 
 from ..errors import ModelSwitcherError
 from ..response import MCPResponse
+from ..runtime.base import Runtime
 from ..state import ModelStateManager
 
 logger = logging.getLogger(__name__)
@@ -36,7 +37,10 @@ def tool_schema() -> Tool:
     )
 
 
-async def handle(state_manager: ModelStateManager) -> list[TextContent]:
+async def handle(
+    state_manager: ModelStateManager,
+    runtime: Runtime,
+) -> list[TextContent]:
     """Handle get_status tool call.
 
     Args:
@@ -48,6 +52,7 @@ async def handle(state_manager: ModelStateManager) -> list[TextContent]:
     try:
         state = state_manager.get_state()
         result = state.to_dict()
+        result["runtime_profile"] = runtime.describe_runtime_profile().__dict__
 
         response = MCPResponse.success(data=result)
 

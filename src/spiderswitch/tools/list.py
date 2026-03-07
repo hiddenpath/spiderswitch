@@ -132,6 +132,7 @@ async def handle(
             data={
                 "count": len(model_entries),
                 "models": model_entries,
+                "runtime_profile": runtime.describe_runtime_profile().__dict__,
                 "filtered": {
                     "require_api_key": require_api_key,
                     "provider": filter_provider,

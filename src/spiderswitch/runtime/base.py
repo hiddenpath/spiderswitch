@@ -54,6 +54,16 @@ class ModelInfo:
     runtime_model_id: str | None = None
 
 
+@dataclass
+class RuntimeProfile:
+    """Runtime-level capability profile used for routing decisions."""
+
+    runtime_id: str
+    language: str
+    supports: list[str]
+    notes: str | None = None
+
+
 class Runtime(ABC):
     """Abstract base class for ai-lib runtime implementations."""
 
@@ -105,3 +115,7 @@ class Runtime(ABC):
     @abstractmethod
     async def close(self) -> None:
         """Cleanup resources."""
+
+    @abstractmethod
+    def describe_runtime_profile(self) -> RuntimeProfile:
+        """Describe runtime routing capabilities for upper-layer strategy engines."""

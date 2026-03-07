@@ -105,7 +105,7 @@ def create_app(
             elif name == "list_models":
                 return await list_tool.handle(_runtime, args)
             elif name == "get_status":
-                return await status.handle(_state)
+                return await status.handle(_state, _runtime)
             elif name == "exit_switcher":
                 return await reset.handle(_runtime, _state)
             else:

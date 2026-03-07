@@ -12,6 +12,7 @@ MCP (Model Context Protocol) server that enables agents to dynamically switch AI
 - **Runtime-Agnostic**: Uses ai-lib-python SDK for unified model interaction
 - **MCP-Compliant**: Implements standard MCP tools over stdio transport
 - **Capability Discovery**: Query available models and their capabilities
+- **Runtime Profile Signal**: Exposes runtime capability profile for upper-layer routing policy engines
 - **Local Readiness Hints**: `list_models` includes API key presence and proxy readiness per provider
 - **Explicit Exit Path**: `exit_switcher` resets switcher runtime/state for clean fallback
 - **Auto Protocol Setup**: Auto-detects local `ai-protocol` path and sets `AI_PROTOCOL_PATH` for current process
@@ -142,6 +143,11 @@ Lists all available models from registered providers.
   "status": "success",
   "data": {
     "count": 2,
+    "runtime_profile": {
+      "runtime_id": "python-runtime",
+      "language": "python",
+      "supports": ["model_switching", "capability_filtering", "provider_manifest_loading"]
+    },
     "models": [
       {
         "id": "openai/gpt-4o",
@@ -188,6 +194,11 @@ Gets current model status and configuration.
     "provider": "anthropic",
     "model": "claude-3-5-sonnet",
     "capabilities": ["streaming", "tools", "vision"],
+    "runtime_profile": {
+      "runtime_id": "python-runtime",
+      "language": "python",
+      "supports": ["model_switching", "capability_filtering", "provider_manifest_loading"]
+    },
     "is_configured": true,
     "connection_epoch": 3,
     "last_switched_at": "2026-03-02T09:00:00+00:00"
@@ -303,6 +314,10 @@ This server follows the ai-lib design principle:
 > **一切逻辑皆算子，一切配置皆协议**
 
 All provider configurations are loaded from ai-protocol manifests. No provider-specific logic is hardcoded. Adding a new provider requires only a manifest file in ai-protocol.
+
+Routing boundary:
+- spiderswitch exposes runtime/model capability signals only.
+- Routing strategy policy (cost/latency/circuit-breaker/business rules) belongs to upper-layer applications.
 
 ## Related Projects
 

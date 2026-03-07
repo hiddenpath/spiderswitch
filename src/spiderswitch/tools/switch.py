@@ -110,6 +110,7 @@ async def handle(
         response = MCPResponse.success(
             data={
                 **format_model_info(model_info),
+                "runtime_profile": runtime.describe_runtime_profile().__dict__,
                 "proxy_status": proxy_status,
                 "warnings": warnings,
             },

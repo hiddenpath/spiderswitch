@@ -66,6 +66,17 @@ class TestModelInfo:
         assert info.capabilities.tools is True
 
 
+def test_runtime_profile_exposes_routing_capability_signal() -> None:
+    """Runtime should expose capability signals, not strategy policy."""
+    runtime = PythonRuntime()
+    profile = runtime.describe_runtime_profile()
+    assert profile.runtime_id == "python-runtime"
+    assert profile.language == "python"
+    assert "model_switching" in profile.supports
+    assert "provider_manifest_loading" in profile.supports
+    assert profile.notes is not None
+
+
 def test_runtime_auto_sets_ai_protocol_path(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

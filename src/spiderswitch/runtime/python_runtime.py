@@ -28,7 +28,7 @@ from ..errors import (
     ModelSwitcherError,
 )
 from ..validation import DEFAULT_VALIDATOR, PROXY_ENV_VARS, get_provider_proxy_status
-from .base import ModelCapabilities, ModelInfo, Runtime
+from .base import ModelCapabilities, ModelInfo, Runtime, RuntimeProfile
 
 logger = logging.getLogger(__name__)
 
@@ -493,6 +493,29 @@ class PythonRuntime(Runtime):
         # Report any cleanup errors
         if cleanup_errors:
             logger.warning(f"Resource cleanup completed with {len(cleanup_errors)} error(s)")
+
+    def describe_runtime_profile(self) -> RuntimeProfile:
+        """Expose runtime-level capabilities for routing-aware callers."""
+        return RuntimeProfile(
+            runtime_id="python-runtime",
+            language="python",
+            supports=[
+                "model_switching",
+                "capability_filtering",
+                "provider_manifest_loading",
+                "streaming",
+                "tool_calling",
+                "stt",
+                "tts",
+                "vision_input",
+                "audio_input",
+                "video_input",
+            ],
+            notes=(
+                "Spiderswitch only exposes routing capability signals. "
+                "Policy selection should be implemented by upper-layer applications."
+            ),
+        )
 
 
 # Helper functions for MCP tool handlers
