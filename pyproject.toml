@@ -1,10 +1,10 @@
-﻿[build-system]
+[build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
 name = "spiderswitch"
-version = "0.4.1"
+version = "0.4.2"
 description = "MCP server for dynamic AI model switching in ai-lib ecosystem"
 readme = "README.md"
 requires-python = ">=3.10"
