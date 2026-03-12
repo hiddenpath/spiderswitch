@@ -77,6 +77,16 @@ spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --for
 spiderswitch doctor --json
 ```
 
+### Offline Install (air-gapped/intranet)
+
+Install from local wheel or local source directory:
+
+```bash
+bash scripts/install_offline.sh /path/to/spiderswitch-0.4.0-py3-none-any.whl
+# or
+bash scripts/install_offline.sh /path/to/spiderswitch-source
+```
+
 ### Configuration
 
 Add to your MCP client configuration:

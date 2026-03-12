@@ -19,6 +19,7 @@ rm -f "$OUT_DIR"/manifest.json "$OUT_DIR"/README.md "$OUT_DIR"/install_one_click
 cp "$PROJECT_DIR/packaging/plugin-market/manifest.json" "$OUT_DIR/manifest.json"
 cp "$PROJECT_DIR/packaging/plugin-market/README.md" "$OUT_DIR/README.md"
 cp "$PROJECT_DIR/scripts/install_one_click.sh" "$OUT_DIR/install_one_click.sh"
+cp "$PROJECT_DIR/scripts/install_offline.sh" "$OUT_DIR/install_offline.sh"
 
 if "$PYTHON_BIN" -m build --version >/dev/null 2>&1; then
   "$PYTHON_BIN" -m build --wheel

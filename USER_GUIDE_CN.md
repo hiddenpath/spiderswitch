@@ -1,483 +1,265 @@
 # spiderswitch 用户指南
 
-> 面向普通用户的安装和使用指南
+> 面向本地用户的安装、配置与日常操作文档。
 
 ---
 
-## 这是什么？
+## spiderswitch 是什么？
 
-**spiderswitch** 是一个 AI 模型切换工具，让你能在不同 AI 模型之间轻松切换——比如从 GPT-4 切换到 Claude，或从 Claude 切换到 DeepSeek。
+`spiderswitch` 是一个 MCP 服务器，用于在 ai-lib 生态中动态切换模型与 provider。
 
-它通过 **MCP（Model Context Protocol）** 协议工作，可以与支持 MCP 的 AI 应用（如 Claude Desktop、Cursor 等）配合使用。
+它适用于支持 MCP 的客户端，例如 Cursor、Claude Desktop、OpenCode。
 
 ---
 
-## 准备工作
+## 前置条件
 
-在开始之前，请确保你有：
-
-| 项目 | 说明 |
+| 项目 | 要求 |
 |------|------|
-| Python 3.10+ | 运行环境 |
-| API 密钥 | 至少一个 AI 服务的 API Key |
-| MCP 客户端 | 如 Claude Desktop、Cursor 等支持 MCP 的应用 |
+| Python | 3.10+ |
+| API Key | 至少一个 provider 的密钥 |
+| MCP 客户端 | Cursor / Claude Desktop / OpenCode |
+| ai-protocol | 推荐配置本地路径（`AI_PROTOCOL_PATH`） |
 
 ---
 
-## 第一步：安装
+## 安装
 
-### 方法一：从 GitHub 安装（推荐）
-
-打开终端，执行以下命令：
+### 方式 A：一键安装（推荐）
 
 ```bash
-# 1. 克隆项目
+bash scripts/install_one_click.sh
+```
+
+安装后执行：
+
+```bash
+spiderswitch doctor --json
+spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --force
+```
+
+### 方式 B：开发者安装
+
+```bash
 git clone https://github.com/hiddenpath/spiderswitch.git
-
-# 2. 进入项目目录
 cd spiderswitch
-
-# 3. 安装
 pip install -e .
 ```
 
-### 方法二：从 PyPI 安装
+### 方式 C：离线安装（内网/隔离环境）
+
+可从本地 wheel 或本地源码目录安装：
 
 ```bash
-pip install spiderswitch
-```
-
-安装完成后，验证是否成功：
-
-```bash
-python -c "import spiderswitch; print('安装成功！')"
+bash scripts/install_offline.sh /path/to/spiderswitch-0.4.0-py3-none-any.whl
+# 或
+bash scripts/install_offline.sh /path/to/spiderswitch-source
 ```
 
 ---
 
-## 第二步：配置 API 密钥
+## 配置 API Key
 
-spiderswitch 需要你的 AI 服务 API 密钥才能工作。
+启动 MCP 客户端前，至少配置一个 provider 的密钥。
 
-### 支持的 AI 服务
+| Provider | 环境变量 |
+|----------|----------|
+| OpenAI | `OPENAI_API_KEY` |
+| Anthropic | `ANTHROPIC_API_KEY` |
+| Google | `GOOGLE_API_KEY` 或 `GEMINI_API_KEY` |
+| DeepSeek | `DEEPSEEK_API_KEY` |
+| Cohere | `COHERE_API_KEY` |
+| Mistral | `MISTRAL_API_KEY` |
 
-| AI 服务 | 环境变量名称 | 获取方式 |
-|---------|-------------|---------|
-| OpenAI (GPT-4 等) | `OPENAI_API_KEY` | [platform.openai.com](https://platform.openai.com/api-keys) |
-| Anthropic (Claude) | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com/) |
-| Google (Gemini) | `GOOGLE_API_KEY` 或 `GEMINI_API_KEY` | [aistudio.google.com](https://aistudio.google.com/app/apikey) |
-| DeepSeek | `DEEPSEEK_API_KEY` | [platform.deepseek.com](https://platform.deepseek.com/api_keys) |
-| Cohere | `COHERE_API_KEY` | [dashboard.cohere.com](https://dashboard.cohere.com/) |
-| Mistral | `MISTRAL_API_KEY` | [console.mistral.ai](https://console.mistral.ai/) |
-
-### 配置方法
-
-**Linux / macOS（bash/zsh）**
-
-编辑 `~/.bashrc` 或 `~/.zshrc`，添加：
+示例：
 
 ```bash
-export OPENAI_API_KEY="sk-你的密钥"
-export ANTHROPIC_API_KEY="sk-ant-你的密钥"
+export OPENAI_API_KEY="sk-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
 ```
 
-然后执行：
+安全建议：
 
-```bash
-source ~/.bashrc  # 或 source ~/.zshrc
-```
-
-**Windows（PowerShell）**
-
-```powershell
-# 临时设置（仅当前会话有效）
-$env:OPENAI_API_KEY = "sk-你的密钥"
-
-# 永久设置（需要管理员权限）
-[Environment]::SetEnvironmentVariable("OPENAI_API_KEY", "sk-你的密钥", "User")
-```
-
-### 安全提示
-
-- **不要**在代码中硬编码 API 密钥
-- **不要**通过工具参数传递密钥
-- 生产环境请使用环境变量
+- 生产环境优先使用环境变量，不建议在工具参数中传 `api_key`。
+- 不要硬编码或提交密钥。
+- 建议定期轮换密钥。
 
 ---
 
-## 第三步：配置 MCP 客户端
+## MCP 客户端配置
 
-spiderswitch 是一个通用 MCP 服务器，可以与任何支持 MCP 协议的客户端配合使用。
+### 使用 `spiderswitch init` 快速生成配置
 
-### 通用配置模板
+```bash
+spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --force
+```
 
-所有 MCP 客户端的配置格式相同：
+支持的 `--client`：
+
+- `cursor`
+- `claude`
+- `opencode`
+
+### 手工配置示例
+
+#### Cursor / Claude Desktop 格式
 
 ```json
 {
   "mcpServers": {
     "spiderswitch": {
-      "command": "python",
-      "args": ["-m", "spiderswitch.server"]
-    }
-  }
-}
-```
-
-如需指定 ai-protocol 路径：
-
-```json
-{
-  "mcpServers": {
-    "spiderswitch": {
-      "command": "python",
-      "args": ["-m", "spiderswitch.server"],
+      "command": "spiderswitch",
+      "args": ["serve"],
       "env": {
-        "AI_PROTOCOL_PATH": "/path/to/ai-protocol"
+        "AI_PROTOCOL_PATH": "/path/to/ai-protocol",
+        "OPENAI_API_KEY": "sk-..."
       }
     }
   }
 }
 ```
 
----
+#### OpenCode 格式
 
-### 各客户端配置方法
-
-不同 MCP 客户端的配置文件位置不同，请根据你使用的工具选择：
-
-#### Claude Desktop
-
-| 系统 | 配置文件路径 |
-|------|-------------|
-| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
-| Windows | `%APPDATA%\\Claude\\claude_desktop_config.json` |
-| Linux | `~/.config/Claude/claude_desktop_config.json` |
-
-**配置步骤**：
-1. 找到并编辑配置文件（如不存在则创建）
-2. 添加上述通用配置模板内容
-3. 保存文件，重启 Claude Desktop
-
----
-
-#### Cursor
-
-| 系统 | 配置文件路径 |
-|------|-------------|
-| macOS | `~/.cursor/mcp.json` |
-| Windows | `%USERPROFILE%\\.cursor\\mcp.json`（推荐），回退 `%APPDATA%\\Cursor\\mcp.json` |
-| Linux | `~/.config/cursor/mcp.json` |
-
-**配置步骤**：
-1. 打开 Cursor 设置（`Ctrl/Cmd + ,`）
-2. 搜索 "MCP" 确认 MCP 功能已启用
-3. 编辑配置文件，添加通用配置模板内容
-4. 重启 Cursor
-
-**注意**：Cursor 也支持项目级配置，可在项目根目录创建 `.cursor/mcp.json`。在 Windows 上如果两个用户级路径都存在，优先使用 `%USERPROFILE%\\.cursor\\mcp.json`。
-
----
-
-#### OpenCode / OpenCode-compatible Clients
-
-| 系统 | 配置文件路径 |
-|------|-------------|
-| macOS/Linux | `~/.config/opencode/mcp.json` |
-| Windows | `%APPDATA%\\opencode\\mcp.json` |
-
-**配置步骤**：
-1. 确认配置目录存在（如不存在则创建）
-2. 编辑或创建 `mcp.json` 文件
-3. 添加通用配置模板内容
-4. 重启客户端
-
----
-
-#### Windsurf
-
-| 系统 | 配置文件路径 |
-|------|-------------|
-| macOS | `~/.windsurf/mcp.json` |
-| Windows | `%APPDATA%\\Windsurf\\mcp.json` |
-| Linux | `~/.config/windsurf/mcp.json` |
-
-**配置步骤**：
-1. 打开 Windsurf 设置
-2. 找到 MCP 配置部分
-3. 添加通用配置模板内容
-4. 保存并重启
-
----
-
-#### Zed
-
-Zed 通过 `settings.json` 配置 MCP 服务器：
-
-| 系统 | 配置文件路径 |
-|------|-------------|
-| macOS/Linux | `~/.config/zed/settings.json` |
-| Windows | `%APPDATA%\\Zed\\settings.json` |
-
-**配置示例**：
 ```json
 {
-  "mcp_servers": {
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
     "spiderswitch": {
-      "command": "python",
-      "args": ["-m", "spiderswitch.server"]
-    }
-  }
-}
-```
-
----
-
-#### 其他 MCP 客户端
-
-如果你使用的是其他支持 MCP 的客户端：
-
-1. 查阅该客户端的文档，找到 MCP 服务器配置位置
-2. 使用上述通用配置模板
-3. 注意配置文件的 JSON 结构可能略有不同（如 `mcp_servers` vs `mcpServers`）
-
----
-
-### 配置验证
-
-配置完成后，可通过以下方式验证：
-
-1. 重启 MCP 客户端
-2. 在客户端中尝试调用 `list_models` 工具
-3. 如返回可用模型列表，说明配置成功
-
-### 常见问题
-
-**Q: 配置文件不存在怎么办？**
-
-手动创建目录和文件即可。例如：
-```bash
-# macOS/Linux (Claude Desktop)
-mkdir -p ~/.config/Claude
-touch ~/.config/Claude/claude_desktop_config.json
-
-# macOS/Linux (Cursor)
-mkdir -p ~/.cursor
-touch ~/.cursor/mcp.json
-```
-
-**Q: 环境变量不生效？**
-
-MCP 服务器继承客户端进程的环境变量。确保：
-1. 环境变量在启动客户端**之前**设置
-2. 或在配置文件的 `env` 字段中设置
-
----
-
-## 第四步：使用
-
-### 可用功能一览
-
-| 工具名称 | 功能 |
-|---------|------|
-| `list_models` | 查看所有可用的 AI 模型 |
-| `switch_model` | 切换到指定模型 |
-| `get_status` | 查看当前使用的模型 |
-| `exit_switcher` | 重置切换器状态 |
-
-### 查看可用模型
-
-在支持 MCP 的应用中，调用 `list_models`：
-
-```
-列出所有可用的模型
-```
-
-返回示例：
-
-```json
-{
-  "status": "success",
-  "data": {
-    "count": 2,
-    "models": [
-      {
-        "id": "openai/gpt-4o",
-        "provider": "openai",
-        "capabilities": ["streaming", "tools", "vision"],
-        "api_key_status": {
-          "has_api_key": true
-        }
+      "type": "local",
+      "command": ["spiderswitch", "serve"],
+      "enabled": true,
+      "environment": {
+        "AI_PROTOCOL_PATH": "/path/to/ai-protocol",
+        "OPENAI_API_KEY": "sk-..."
       }
-    ],
-    "filtered": {
-      "require_api_key": false,
-      "provider": null,
-      "capability": null
     }
   }
 }
 ```
 
-### 切换模型
+---
 
-切换到特定模型，格式为 `提供者/模型名`：
+## CLI 命令
 
-```
-切换到 Claude 3.5 Sonnet
-```
+### `spiderswitch serve`
 
-或使用完整标识符：
+启动 MCP stdio 服务。
 
-```
-switch_model: anthropic/claude-3-5-sonnet
-```
+### `spiderswitch init`
 
-支持的模型格式示例：
+生成 MCP 配置模板。
 
-| 模型 | 标识符 |
-|------|-------|
-| GPT-4o | `openai/gpt-4o` |
-| GPT-4 Turbo | `openai/gpt-4-turbo` |
-| Claude 3.5 Sonnet | `anthropic/claude-3-5-sonnet` |
-| Claude 3 Opus | `anthropic/claude-3-opus` |
-| Gemini Pro | `google/gemini-pro` |
-| DeepSeek Chat | `deepseek/deepseek-chat` |
+常用参数：
 
-### 查看当前状态
+- `--client {cursor|claude|opencode}`
+- `--output <path>`
+- `--ai-protocol-path <path>`
+- `--force`
 
-```
-查看当前模型状态
-```
+### `spiderswitch doctor`
 
-返回示例：
+执行健康检查（Python 版本、协议路径、密钥存在性、代理 scheme、可选 runtime probe）。
 
-```json
-{
-  "status": "success",
-  "data": {
-    "provider": "anthropic",
-    "model": "claude-3-5-sonnet",
-    "capabilities": ["streaming", "tools", "vision"],
-    "is_configured": true,
-    "connection_epoch": 3,
-    "last_switched_at": "2026-03-05T04:00:00+00:00"
-  }
-}
-```
+常用参数：
 
-### 重置状态
-
-如果需要重置切换器：
-
-```
-退出模型切换器
-```
+- `--json` 输出结构化结果
+- `--no-runtime-probe` 跳过模型探测以加快检查
 
 ---
 
-## 常见问题
+## MCP 工具说明
 
-### Q: 切换模型失败，提示缺少 API Key
+### `list_models`
 
-**原因**：未配置对应服务的 API 密钥。
+列出 ai-protocol manifests 中可用模型。
 
-**解决方法**：
+参数：
 
-1. 确认已设置正确的环境变量
-2. 重启 MCP 客户端使环境变量生效
-3. 再次尝试切换
+- `filter_provider`（可选）
+- `filter_capability`（可选）
+- `require_api_key`（可选）
+- `runtime_id`（可选）
 
-错误返回示例：
+### `switch_model`
 
-```json
-{
-  "status": "error",
-  "error": {
-    "type": "InvalidModelError",
-    "message": "Missing API key for provider: openai",
-    "details": {
-      "provider": "openai",
-      "expected_env_vars": ["OPENAI_API_KEY"],
-      "hint": "Set OPENAI_API_KEY environment variable in the MCP server process environment before calling switch_model."
-    }
-  }
-}
-```
+切换当前模型。
 
-### Q: 连接超时或无法访问
+参数：
 
-**原因**：某些 AI 服务可能需要代理访问。
+- `model`（必填，`provider/model` 格式）
+- `api_key`（可选，生产不推荐）
+- `base_url`（可选）
+- `runtime_id`（可选）
 
-**解决方法**：
+### `get_status`
 
-设置代理环境变量：
+查询当前状态与 runtime profile。
 
-```bash
-export HTTPS_PROXY="http://127.0.0.1:7890"
-export HTTP_PROXY="http://127.0.0.1:7890"
-```
+参数：
 
-### Q: 如何查看哪些模型已配置好 API Key？
+- `runtime_id`（可选）
 
-调用 `list_models`，返回结果中的 `api_key_status` 字段会显示：
+### `exit_switcher`
 
-```json
-{
-  "api_key_status": {
-    "has_api_key": true,
-    "expected_env_vars": ["OPENAI_API_KEY"],
-    "configured_env_vars": ["OPENAI_API_KEY"]
-  }
-}
-```
+重置运行时/会话状态。
 
-### Q: 如何过滤特定能力的模型？
+参数：
 
-```
-列出支持视觉功能的模型
-```
-
-或使用参数：
-
-```json
-{
-  "filter_capability": "vision"
-}
-```
+- `runtime_id`（可选）
+- `scope`（`all` 或 `runtime`，可选）
 
 ---
 
-## 进阶配置
+## 运行时环境变量
 
-### 禁用自动同步
-
-如需禁用启动时的协议文件同步：
-
-```bash
-export SPIDERSWITCH_SYNC_DIST=0
-```
-
-### 自定义协议源
-
-```bash
-export AI_PROTOCOL_DIST_BASE_URL="https://your-mirror.com/dist"
-```
+- `AI_PROTOCOL_PATH` / `AI_PROTOCOL_DIR`：本地 ai-protocol 根路径
+- `SPIDERSWITCH_SYNC_ON_INIT=1`：在初始化阶段启用 dist 同步（默认关闭）
+- `SPIDERSWITCH_SYNC_DIST=0`：在显式触发同步时禁用 dist 同步
+- `AI_PROTOCOL_DIST_BASE_URL`：覆盖 raw dist 源地址
+- `AI_PROTOCOL_DIST_API_BASE_URL`：覆盖 GitHub API 列表源地址
+- `SPIDERSWITCH_LIST_CACHE_TTL_SEC`：`list_models` 缓存 TTL（默认 `5`）
+- `SPIDERSWITCH_STATUS_CACHE_TTL_SEC`：`get_status` 缓存 TTL（默认 `2`）
 
 ---
 
-## 相关链接
+## 常见问题排查
 
-- [ai-lib 生态](https://github.com/hiddenpath/ai-lib-python)
-- [ai-protocol 协议规范](https://github.com/hiddenpath/ai-protocol)
-- [问题反馈](https://github.com/hiddenpath/spiderswitch/issues)
+### 缺少 API Key 报错
+
+- 确认客户端进程环境里有对应 provider 的密钥变量。
+- 修改环境变量后重启 MCP 客户端。
+- 重新执行 `spiderswitch doctor --json` 检查。
+
+### 代理相关失败
+
+- 不支持的代理 scheme（例如 `socks4://`）会被拒绝。
+- 请使用 `http://`、`https://` 或 `socks5://`。
+
+### 模型列表为空
+
+- 检查 `AI_PROTOCOL_PATH` 是否指向有效的 `ai-protocol` 仓库。
+- 确认该路径下存在 `v1/models/*.yaml`。
 
 ---
 
-## 许可证
+## 推荐验证流程
 
-本项目采用 MIT 或 Apache-2.0 双许可证，可任选其一。
+1. `spiderswitch doctor --json`
+2. 启动/重启 MCP 客户端
+3. 调用 `list_models`
+4. 调用 `switch_model` 切换一个已知模型
+5. 调用 `get_status`
+6. 调用 `exit_switcher`（可选清理）
 
 ---
 
-**spiderswitch** — 让 AI 模型切换更简单 🤖🔀
+## 相关文档
+
+- `README.md`：项目概览
+- `README_CN.md`：中文快速开始
+- `USAGE_EXAMPLES.md`：调用示例
+
+---
+
+`spiderswitch` 的目标是让模型路由过程更可控、可观测、可验证。

@@ -76,6 +76,16 @@ spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --for
 spiderswitch doctor --json
 ```
 
+### 离线安装（内网/隔离环境）
+
+可从本地 wheel 或本地源码目录安装：
+
+```bash
+bash scripts/install_offline.sh /path/to/spiderswitch-0.4.0-py3-none-any.whl
+# 或
+bash scripts/install_offline.sh /path/to/spiderswitch-source
+```
+
 ### 配置
 
 添加到你的MCP客户端配置：
